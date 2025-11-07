@@ -204,7 +204,7 @@ export default function UserPage() {
               disabled={loading}
               className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium disabled:opacity-60 transition-all duration-300"
             >
-              {loading ? 'Checking…' : 'Admin'}
+              {loading ? 'Checking…' : 'Login'}
             </button>
           </div>
         </div>
