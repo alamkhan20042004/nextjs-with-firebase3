@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
+/* Netflix-inspired color palette and design system */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --netflix-red: #E50914;
+  --netflix-dark: #141414;
+  --netflix-black: #000000;
+  --netflix-gray: #1F1F1F;
+  --netflix-light-gray: #B3B3B3;
+  --netflix-white: #FFFFFF;
+  --netflix-hover: rgba(229, 9, 20, 0.08);
+  --background: var(--netflix-black);
+  --foreground: var(--netflix-white);
+  --card-bg: var(--netflix-gray);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease;
+  --shadow-netflix: 0 4px 16px rgba(0, 0, 0, 0.75);
 }
 
 @theme inline {
@@ -12,15 +24,90 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Netflix-style button animations */
+button, a {
+  transition: var(--transition-smooth);
+}
+
+/* Custom scrollbar (Netflix-style) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--netflix-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--netflix-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #464646;
+}
+
+/* Card hover effects (Netflix-style scale + shadow) */
+.netflix-card {
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.netflix-card:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-netflix);
+  z-index: 10;
+}
+
+/* Horizontal rows: force horizontal scroll only, hide vertical overflow */
+.no-vertical-scroll {
+  overflow-y: hidden !important;
+  white-space: nowrap;
+}
+
+/* Shimmer animation for skeletons */
+@keyframes skltn {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Netflix red accent utilities */
+.text-netflix-red {
+  color: var(--netflix-red);
+}
+
+.bg-netflix-red {
+  background-color: var(--netflix-red);
+}
+
+.bg-netflix-red:hover {
+  background-color: #F40612;
+}
+
+.border-netflix-red {
+  border-color: var(--netflix-red);
 }
