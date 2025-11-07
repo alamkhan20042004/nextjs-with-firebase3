@@ -117,7 +117,7 @@ export default function UserPage() {
       if (isAdminEmail(userEmail)) {
         router.push('/admin')
       } else {
-        setError('This account is not an admin.')
+        // setError('This account is not premium.')
       }
     } catch (e: any) {
       setError(e?.message || 'Failed to sign in or check admin.')
