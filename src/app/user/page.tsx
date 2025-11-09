@@ -178,7 +178,7 @@ export default function UserPage() {
   }, [filteredItems, homeCfg])
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-[#0a0a0a] to-[var(--netflix-black)] relative overflow-hidden">
+  <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-gray-900 to-[var(--netflix-black)] relative overflow-hidden">
       {/* Animated background particles */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-[var(--netflix-red)] rounded-full blur-3xl animate-pulse animation-delay-100"></div>
@@ -364,14 +364,15 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
         <div className="relative group/row">
           <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-4 snap-x snap-mandatory no-vertical-scroll overscroll-x-contain hover:pb-6 transition-all duration-300"
             style={{ WebkitOverflowScrolling: 'touch' }}>
-            {items.map((m, idx) => (
-              <Link
-                key={m.id}
-                href={`/watch/${m.id}`}
-                className="relative shrink-0 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden snap-start group/card transition-all duration-500 hover:scale-110 hover:z-20 animate-fade-in-right"
-                style={{ animationDelay: `${idx * 100}ms` }}
-              >
-                <div className="relative aspect-[16/9] bg-gradient-to-br from-[var(--netflix-gray)] to-black/60">
+                {items.map((m, idx) => (
+                  <Link
+                    key={m.id}
+                    href={`/watch/${m.id}`}
+                    className="relative shrink-0 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden snap-start group/card transition-all duration-500 hover:scale-110 hover:z-20 animate-fade-in-right"
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    {/* Consistent portrait style like TOP 10 row on mobile */}
+                    <div className="relative aspect-[2/3] md:aspect-[16/9] bg-gradient-to-br from-[var(--netflix-gray)] to-black/60">
                   {/* Glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-xl"></div>
                   
@@ -404,12 +405,12 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                   </div>
                   
                   {/* Enhanced hover info overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex flex-col justify-end p-3 sm:p-4">
                     <div className="transform translate-y-4 group-hover/card:translate-y-0 transition-all duration-300 space-y-2">
-                      <p className="text-sm font-bold text-white line-clamp-2 group-hover/card:text-[var(--netflix-red)] transition-colors duration-300">
+                      <p className="text-[13px] sm:text-[14px] md:text-sm font-bold text-white line-clamp-2 group-hover/card:text-[var(--netflix-red)] transition-colors duration-300">
                         {m.name}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-[var(--netflix-light-gray)]">
+                          <div className="flex items-center gap-2 text-[11px] sm:text-[12px] md:text-xs text-[var(--netflix-light-gray)]">
                         <span className="px-2 py-0.5 bg-white/20 rounded-full">
                           {m.type === 'series' ? 'Series' : 'Movie'}
                         </span>
@@ -421,12 +422,12 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                       </div>
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 mt-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 animation-delay-200">
-                        <button className="w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
+                        <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                           </svg>
                         </button>
-                        <button className="w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
+                        <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                           </svg>
@@ -480,7 +481,7 @@ function TopTenRow({ title, items }: { title: string; items: Movie[] }) {
                 </div>
                 {/* Poster card */}
                 <div className="relative z-10 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded overflow-hidden transition-transform duration-300 hover:scale-110">
-                  <div className="relative aspect-[16/9] bg-[var(--netflix-gray)]">
+                  <div className="relative aspect-[2/3] sm:aspect-[16/9] bg-[var(--netflix-gray)]">
                     {/* TOP 10 badge */}
                     <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2 z-10">
                       <div className="bg-[var(--netflix-red)] text-white text-[10px] font-bold px-2 py-1 flex items-center gap-1">
@@ -521,13 +522,13 @@ function TopTenRow({ title, items }: { title: string; items: Movie[] }) {
 
 function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; description?: string; ctaLabel?: string; ctaUrl?: string } }) {
   return (
-    <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden fade-in">
+    <div className="relative w-full h-[46vh] sm:h-[60vh] md:h-[70vh] overflow-hidden fade-in">
       {/* Background image with gradient overlay */}
       <div className="absolute inset-0">
         <img
           src={(cfg?.imageUrl || item.heroImageUrl || item.pic)}
           alt={item.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center sm:object-cover"
           onError={(e) => {
             const el = e.currentTarget as HTMLImageElement
             el.style.visibility = 'hidden'
@@ -540,8 +541,8 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
       </div>
 
       {/* Content */}
-      <div className="relative h-full flex items-end pb-16 sm:pb-20 px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="max-w-xl space-y-4">
+      <div className="relative h-full flex items-end pb-12 sm:pb-20 px-3 sm:px-6 w-full md:max-w-7xl mx-auto">
+        <div className="w-full max-w-xl space-y-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl">
             {item.name}
           </h1>
@@ -553,7 +554,7 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
           <div className="flex items-center gap-3 pt-2">
             <Link
               href={(cfg?.ctaUrl || item.heroCTAUrl || `/watch/${item.id}`)}
-              className="flex items-center gap-2 bg-white hover:bg-white/90 text-black font-semibold px-6 py-2.5 rounded-md transition-all duration-300 shadow-lg"
+              className="flex items-center gap-2 bg-white hover:bg-white/90 text-black font-semibold px-5 py-2.5 rounded-md transition-all duration-300 shadow-lg w-fit"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
@@ -562,7 +563,7 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
             </Link>
             <Link
               href={`/watch/${item.id}`}
-              className="flex items-center gap-2 bg-[var(--netflix-gray)]/70 hover:bg-[var(--netflix-gray)] text-white font-semibold px-6 py-2.5 rounded-md transition-all duration-300 backdrop-blur"
+              className="flex items-center gap-2 bg-[var(--netflix-gray)]/70 hover:bg-[var(--netflix-gray)] text-white font-semibold px-5 py-2.5 rounded-md transition-all duration-300 backdrop-blur w-fit"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

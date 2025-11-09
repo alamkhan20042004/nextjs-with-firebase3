@@ -34,6 +34,7 @@ export default function EpisodePlayerPage() {
   const [smallScreen, setSmallScreen] = useState(false)
   const [isLandscape, setIsLandscape] = useState(false)
   const [shortViewport, setShortViewport] = useState(false)
+  const [showRotateHint, setShowRotateHint] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -95,6 +96,11 @@ export default function EpisodePlayerPage() {
     }
   }, [])
 
+  // Update rotate hint visibility
+  useEffect(() => {
+    setShowRotateHint(isFullscreen && (smallScreen || window.matchMedia('(pointer:coarse)').matches) && !isLandscape)
+  }, [isFullscreen, smallScreen, isLandscape])
+
   const isRumble = useMemo(() => {
     const url = current?.url || ''
     return /rumble\.com/i.test(url)
@@ -106,13 +112,41 @@ export default function EpisodePlayerPage() {
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen()
+        // Try to unlock orientation when leaving fullscreen
+        try {
+          const anyScreen: any = screen as any
+          if (anyScreen?.orientation?.unlock) {
+            anyScreen.orientation.unlock()
+          }
+        } catch {}
       } else {
         await el.requestFullscreen()
+        // On mobile/small screens, try to lock to landscape in fullscreen
+        try {
+          const isCoarse = window.matchMedia('(pointer:coarse)').matches
+          const mobileLikely = isCoarse || smallScreen || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+          const anyScreen: any = screen as any
+          if (mobileLikely && anyScreen?.orientation?.lock) {
+            await anyScreen.orientation.lock('landscape')
+          }
+        } catch {
+          // If lock fails (iOS Safari or unsupported), we'll show rotate hint overlay below
+        }
       }
     } catch {
       // ignore
     }
   }
+
+  // Safety: if user exits fullscreen via system gesture, try to unlock orientation
+  useEffect(() => {
+    if (!isFullscreen) {
+      try {
+        const anyScreen: any = screen as any
+        if (anyScreen?.orientation?.unlock) anyScreen.orientation.unlock()
+      } catch {}
+    }
+  }, [isFullscreen])
 
   // Calculate overlay dimensions - SIMPLIFIED and more reliable
   const getOverlayStyle = () => {
@@ -139,7 +173,7 @@ export default function EpisodePlayerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-[#0a0a0a] to-[var(--netflix-black)] grid place-items-center p-6 relative overflow-hidden">
+      <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-gray-900 to-[var(--netflix-black)] grid place-items-center p-6 relative overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-[var(--netflix-red)] rounded-full blur-3xl animate-pulse"></div>
@@ -239,6 +273,16 @@ export default function EpisodePlayerPage() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-pointer-lock"
           />
+
+          {/* Rotate hint for iOS/unsupported orientation lock */}
+          {showRotateHint && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+              <div className="text-center text-white px-6 py-4 rounded-lg border border-white/20 bg-black/40">
+                <div className="mb-2 text-lg font-semibold">Rotate your device</div>
+                <div className="text-sm text-white/80">For fullscreen, please rotate to landscape.</div>
+              </div>
+            </div>
+          )}
 
           {/* RUMBLE OVERLAY - Always show when Rumble and hideBranding is true */}
           {hideBranding && isRumble && (
