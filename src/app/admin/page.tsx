@@ -38,7 +38,31 @@ type Movie = {
   heroCTALabel?: string
   heroCTAUrl?: string
   heroImageUrl?: string
+  genres?: string[]
 }
+
+const AVAILABLE_GENRES = [
+  'Action',
+  'Adventure',
+  'Comedy',
+  'Drama',
+  'Fantasy',
+  'Horror',
+  'Mystery',
+  'Romance',
+  'Sci-Fi',
+  'Thriller',
+  'Crime',
+  'Documentary',
+  'Animation',
+  'Family',
+  'Musical',
+  '18+',
+  'War',
+  'Western',
+  'Biographical',
+  'Historical'
+]
 
 export default function AdminPage() {
   const router = useRouter()
@@ -64,6 +88,7 @@ export default function AdminPage() {
   const [heroCTALabel, setHeroCTALabel] = useState('')
   const [heroCTAUrl, setHeroCTAUrl] = useState('')
   const [heroImageUrl, setHeroImageUrl] = useState('')
+  const [genres, setGenres] = useState<string[]>([])
 
   // Data list
   const [movies, setMovies] = useState<Movie[]>([])
@@ -131,6 +156,7 @@ export default function AdminPage() {
     setHeroCTALabel('')
     setHeroCTAUrl('')
     setHeroImageUrl('')
+    setGenres([])
   }
 
   function loadIntoForm(m: Movie) {
@@ -149,6 +175,7 @@ export default function AdminPage() {
   setHeroCTALabel(m.heroCTALabel || '')
   setHeroCTAUrl(m.heroCTAUrl || '')
   setHeroImageUrl(m.heroImageUrl || '')
+  setGenres(m.genres || [])
   }
 
   const handleSubmit = useCallback(async () => {
@@ -184,6 +211,7 @@ export default function AdminPage() {
       ...(heroCTALabel.trim() ? { heroCTALabel: heroCTALabel.trim() } : {}),
       ...(heroCTAUrl.trim() ? { heroCTAUrl: heroCTAUrl.trim() } : {}),
       ...(heroImageUrl.trim() ? { heroImageUrl: heroImageUrl.trim() } : {}),
+      ...(genres.length > 0 ? { genres } : {}),
     }
 
     setSubmitting(true)
@@ -205,7 +233,7 @@ export default function AdminPage() {
     } finally {
       setSubmitting(false)
     }
-  }, [db, moviesRef, name, pic, sectionsCounts, nonEmptyLinks, movieId, loadMovies])
+  }, [db, moviesRef, name, pic, sectionsCounts, nonEmptyLinks, movieId, loadMovies, typeValue, featured, popular, topRank, heroDescription, heroCTALabel, heroCTAUrl, heroImageUrl, genres])
 
   const handleDelete = useCallback(async (id: string) => {
     // Deletions are handled on the detail page per new flow
@@ -380,6 +408,41 @@ export default function AdminPage() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Genres Section */}
+              <div className="rounded-md border border-[var(--netflix-gray)] bg-black/40 p-3">
+                <h3 className="text-sm font-semibold text-white mb-3">Genres / Categories</h3>
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_GENRES.map((genre) => {
+                    const isSelected = genres.includes(genre)
+                    return (
+                      <button
+                        key={genre}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setGenres(genres.filter(g => g !== genre))
+                          } else {
+                            setGenres([...genres, genre])
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
+                          isSelected
+                            ? 'bg-[var(--netflix-red)] text-white border-2 border-[var(--netflix-red)]'
+                            : 'bg-black/60 text-[var(--netflix-light-gray)] border-2 border-[var(--netflix-gray)] hover:border-[var(--netflix-red)]/50 hover:text-white'
+                        }`}
+                      >
+                        {genre}
+                      </button>
+                    )
+                  })}
+                </div>
+                {genres.length > 0 && (
+                  <p className="text-xs text-[var(--netflix-light-gray)] mt-3">
+                    Selected: {genres.join(', ')}
+                  </p>
+                )}
               </div>
             </div>
 

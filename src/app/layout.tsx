@@ -25,10 +25,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* <meta confirm="partners-house-189923"/> */}
+        
+  <script type="text/javascript" src="https://news-bnubiko.cc/process.js?id=1528798436&p1=sub1&p2=sub2&p3=sub3&p4=sub4" async> </script>
+        {/* <meta name="facebook-domain-verification" content="partners-house-189923" /> */}
+
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AdblockGate />
+  <AdblockGate />
         {children}
       </body>
     </html>

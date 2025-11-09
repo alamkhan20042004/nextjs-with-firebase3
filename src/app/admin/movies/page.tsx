@@ -18,6 +18,7 @@ type Movie = {
   sections: { name: string; links: string[] }[]
   createdAt?: Timestamp
   type?: 'movie' | 'series'
+  genres?: string[]
 }
 
 export default function MoviesListPage() {
@@ -134,15 +135,16 @@ export default function MoviesListPage() {
           ) : (
             <div className="overflow-x-auto rounded-lg border border-[var(--netflix-gray)]">
               <table className="min-w-full text-sm">
-                <thead className="bg-[var(--netflix-gray)]">
+                <thead className="bg-[var(--netflix-gray)]/50">
                   <tr className="text-left">
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Type</th>
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Name</th>
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Pic</th>
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Sections</th>
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Videos</th>
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Created</th>
-                    <th className="py-3 px-3 font-semibold text-white text-xs uppercase tracking-wider">Actions</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Type</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Name</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Pic</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Genres</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Sections</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Videos</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Created</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--netflix-gray)]">
@@ -150,23 +152,39 @@ export default function MoviesListPage() {
                     const totalVideos = m.sections?.reduce((a, s) => a + s.links.length, 0) ?? 0
                     const created = m.createdAt?.toDate ? m.createdAt.toDate() : undefined
                     return (
-                      <tr key={m.id} className="hover:bg-[var(--netflix-gray)]/30 transition-colors duration-200">
-                        <td className="py-3 px-3 text-[var(--netflix-light-gray)]">{m.type ? (m.type === 'movie' ? 'Movie' : 'Series') : '-'}</td>
-                        <td className="py-3 px-3 font-medium text-white">{m.name}</td>
+                      <tr key={m.id} className="hover:bg-[var(--netflix-gray)]/30 transition-colors duration-200 group">
+                        <td className="py-3 px-3 text-[var(--netflix-light-gray)]">
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-black/40 border border-[var(--netflix-gray)]">
+                            {m.type ? (m.type === 'movie' ? 'Movie' : 'Series') : '-'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 font-medium text-white group-hover:text-[var(--netflix-red)] transition-colors">{m.name}</td>
                         <td className="py-3 px-3 max-w-[240px]">
                           <div className="flex items-center gap-3">
                             <img
                               src={m.pic}
                               alt={`${m.name} poster`}
-                              className="h-12 w-20 rounded object-cover border border-[var(--netflix-gray)] shadow-md"
+                              className="h-12 w-20 rounded object-cover border border-[var(--netflix-gray)] shadow-md group-hover:border-[var(--netflix-red)]/50 transition-colors"
                               onError={(e) => {
                                 const el = e.currentTarget as HTMLImageElement
                                 el.style.visibility = 'hidden'
                               }}
                             />
-                            <a href={m.pic} target="_blank" rel="noreferrer" className="truncate text-[var(--netflix-red)] hover:underline block max-w-[160px] text-xs">
+                            <a href={m.pic} target="_blank" rel="noreferrer" className="truncate text-[var(--netflix-light-gray)] hover:text-[var(--netflix-red)] hover:underline block max-w-[160px] text-xs">
                               {m.pic}
                             </a>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex flex-wrap gap-1 max-w-[260px]">
+                            {(m.genres || []).slice(0,4).map((g) => (
+                              <span key={g} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/40 text-white border border-[var(--netflix-gray)]">
+                                {g}
+                              </span>
+                            ))}
+                            {(m.genres?.length || 0) > 4 && (
+                              <span className="text-[10px] text-[var(--netflix-light-gray)]">+{(m.genres!.length - 4)}</span>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-3 text-[var(--netflix-light-gray)]">{m.sections?.length ?? 0}</td>
@@ -175,7 +193,7 @@ export default function MoviesListPage() {
                         <td className="py-3 px-3">
                           <Link
                             href={`/admin/movies/${m.id}`}
-                            className="rounded-md bg-[var(--netflix-red)] text-white px-3 py-1.5 text-xs hover:bg-[#b20710] transition-all duration-300 inline-block"
+                            className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 py-1.5 text-xs font-medium transition-all duration-300 inline-block"
                           >
                             Show
                           </Link>

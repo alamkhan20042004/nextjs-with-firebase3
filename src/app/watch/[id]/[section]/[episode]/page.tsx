@@ -15,6 +15,7 @@ type Movie = {
   pic: string
   type?: 'movie' | 'series'
   sections: Section[]
+  genres?: string[]
 }
 
 export default function EpisodePlayerPage() {
@@ -115,8 +116,8 @@ export default function EpisodePlayerPage() {
 
   // Calculate overlay dimensions - SIMPLIFIED and more reliable
   const getOverlayStyle = () => {
-    let width = 100
-    let height = 40
+    let width = 130
+    let height = 30
 
     if (smallScreen || shortViewport) {
       width = isLandscape ? 145 : 115
@@ -138,10 +139,30 @@ export default function EpisodePlayerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-[var(--netflix-black)] grid place-items-center p-6">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-[var(--netflix-red)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-[var(--netflix-light-gray)]">Loading player…</p>
+      <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-[#0a0a0a] to-[var(--netflix-black)] grid place-items-center p-6 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-[var(--netflix-red)] rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-white rounded-full blur-2xl animate-bounce animation-delay-500"></div>
+        </div>
+        
+        <div className="flex flex-col items-center gap-6 relative z-10">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-[var(--netflix-red)]/30 border-t-[var(--netflix-red)] rounded-full animate-spin"></div>
+            <div className="absolute inset-2 w-12 h-12 border-4 border-transparent border-b-white rounded-full animate-spin animation-direction-reverse"></div>
+          </div>
+          
+          <div className="text-center animate-fade-in-up animation-delay-300">
+            <p className="text-lg font-semibold text-white mb-2 animate-pulse">Loading player</p>
+            <p className="text-sm text-[var(--netflix-light-gray)] animate-fade-in animation-delay-600">Preparing your cinematic experience...</p>
+          </div>
+          
+          {/* Loading dots */}
+          <div className="flex gap-2 animate-fade-in animation-delay-900">
+            <div className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-bounce animation-delay-200"></div>
+            <div className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-bounce animation-delay-400"></div>
+          </div>
         </div>
       </div>
     )
@@ -156,36 +177,67 @@ export default function EpisodePlayerPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[var(--netflix-black)] p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-5xl space-y-4 animate-fadeIn">
-        {/* Header with movie info */}
-        <div className="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-[var(--netflix-gray)]">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">{movie.name}</h1>
-            <p className="text-xs sm:text-sm text-[var(--netflix-light-gray)] mt-1">
+    <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-[#0a0a0a] to-[var(--netflix-black)] p-4 sm:p-6 relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse animation-delay-100"></div>
+        <div className="absolute top-3/4 right-1/3 w-1 h-1 bg-white/50 rounded-full animate-bounce animation-delay-200"></div>
+        <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-[var(--netflix-red)]/60 rounded-full animate-ping animation-delay-300"></div>
+      </div>
+
+      <div className="mx-auto w-full max-w-5xl space-y-6 relative z-10">
+        {/* Header with movie info - Enhanced animations */}
+        <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-gradient-to-r from-transparent via-[var(--netflix-red)]/30 to-transparent backdrop-blur-sm transform transition-all duration-700 hover:scale-[1.02]">
+          <div className="transform transition-all duration-500 hover:translate-x-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent animate-gradient">
+              {movie.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--netflix-light-gray)] mt-1 animate-fade-in-up animation-delay-200">
               {movie.type === 'series' ? 'Series' : 'Movie'} • {current.section.name} • Episode {episodeIndex + 1}
             </p>
+            {movie.genres && movie.genres.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2 animate-fade-in-up animation-delay-400">
+                {movie.genres.slice(0,6).map((g, i) => (
+                  <span 
+                    key={g} 
+                    className="px-3 py-1 rounded-full text-[11px] font-medium bg-gradient-to-r from-[var(--netflix-red)]/20 to-black/60 text-white border border-[var(--netflix-red)]/30 hover:border-[var(--netflix-red)] hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in-right"
+                    style={{ animationDelay: `${600 + i * 100}ms` }}
+                  >
+                    {g}
+                  </span>
+                ))}
+                {movie.genres.length > 6 && (
+                  <span className="text-[11px] text-[var(--netflix-light-gray)] animate-fade-in animation-delay-1000">
+                    +{movie.genres.length - 6}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <Link 
             href={`/watch/${movie.id}`} 
-            className="rounded-md bg-[var(--netflix-gray)] text-white px-4 py-2 text-sm hover:bg-[var(--netflix-gray)]/70 transition-all duration-300"
+            className="group relative rounded-lg bg-gradient-to-r from-[var(--netflix-red)] to-[#b91c1c] text-white px-6 py-3 text-sm font-semibold hover:from-[#b91c1c] hover:to-[var(--netflix-red)] transition-all duration-500 hover:scale-110 hover:shadow-lg hover:shadow-[var(--netflix-red)]/50 transform animate-fade-in-left animation-delay-300"
           >
-            Back
+            <span className="relative z-10">← Back</span>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shimmer transition-opacity duration-300"></div>
           </Link>
         </div>
 
-        {/* Video player container with Netflix shadow */}
+        {/* Video player container with enhanced Netflix styling */}
         <div 
           ref={containerRef} 
-          className="relative aspect-video w-full rounded-lg overflow-hidden border border-[var(--netflix-gray)] shadow-2xl bg-black"
+          className="relative aspect-video w-full rounded-xl overflow-hidden border border-[var(--netflix-red)]/30 shadow-2xl bg-black transform transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(229,9,20,0.3)] animate-fade-in-up animation-delay-500 group"
         >
-          {/* Video iframe */}
+          {/* Glowing border effect */}
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+          
+          {/* Video iframe with loading shimmer */}
           <iframe
             src={current.url}
-            className="w-full h-full"
+            className="w-full h-full relative z-10 transition-all duration-300"
+            // Explicitly omit fullscreen permission so the embedded player's default fullscreen control is disabled
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-pointer-lock"
-            allowFullScreen
           />
 
           {/* RUMBLE OVERLAY - Always show when Rumble and hideBranding is true */}
@@ -213,11 +265,11 @@ export default function EpisodePlayerPage() {
             </>
           )}
 
-          {/* Other providers overlay */}
+          {/* Other providers overlay: transparent click-blocker over default fullscreen control */}
           {hideBranding && !isRumble && (
             <div
               aria-hidden="true"
-              className="absolute bottom-0 right-0 z-30 bg-black pointer-events-auto"
+              className="absolute bottom-0 right-0 z-30 bg-transparent pointer-events-auto"
               style={{
                 width: smallScreen ? '70px' : '90px',
                 height: smallScreen ? '56px' : '72px'
@@ -226,23 +278,83 @@ export default function EpisodePlayerPage() {
             />
           )}
 
-          {/* Fullscreen button - Higher z-index to stay above overlays */}
-          {/* <button
+
+
+
+
+
+
+
+
+          {/* Enhanced fullscreen button */}
+          <button
             type="button"
             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             onClick={toggleFullscreen}
-            className="absolute top-2 right-2 z-50 rounded-md bg-black/70 text-white text-xs px-2 py-1 hover:bg-black/80"
+            className="absolute top-3 right-3 z-50 group/fs rounded-lg bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-sm text-white text-sm px-4 py-2 hover:from-[var(--netflix-red)]/90 hover:to-[var(--netflix-red)]/70 transition-all duration-300 hover:scale-110 hover:shadow-lg border border-white/20 hover:border-[var(--netflix-red)]/50"
           >
-            {isFullscreen ? 'Exit' : 'Full screen'}
-          </button> */}
+            <span className="flex items-center gap-2">
+              <svg 
+                className="w-4 h-4 transition-transform duration-300 group-hover/fs:rotate-12" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                {isFullscreen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                )}
+              </svg>
+              {isFullscreen ? 'Exit' : 'Fullscreen'}
+            </span>
+          </button>
+
+          {/* Alam here below start 1*/}
+
+
+            {/* Animated black overlay box when in fullscreen - maintains functionality */}
+            {/* {isFullscreen && (
+              <div
+                aria-hidden="true"
+                className="fixed top-3 left-3 w-[100px] h-[100px] bg-black z-[2147483647] pointer-events-none animate-fade-in border border-[var(--netflix-red)]/20 rounded-lg shadow-lg"
+              />
+            )} */}
+
+          {/* Alam here below end 1*/}
+
+
+
+
+
+
+
 
         </div>
 
-        {/* Player info with Netflix styling */}
-        <div className="flex items-center justify-center">
-          <p className="text-xs sm:text-sm text-[var(--netflix-light-gray)] text-center px-4 py-2 rounded-md bg-[var(--netflix-gray)]/50 backdrop-blur">
-            💡 If the player screen is not set correctly, try fullscreen and double-click on the video
-          </p>
+        {/* Enhanced player info with animations */}
+        <div className="flex items-center justify-center animate-fade-in-up animation-delay-800">
+          <div className="relative group/tip">
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-[var(--netflix-red)]/10 to-[var(--netflix-red)]/20 rounded-xl blur opacity-0 group-hover/tip:opacity-100 transition-all duration-500"></div>
+            <p className="relative text-xs sm:text-sm text-[var(--netflix-light-gray)] text-center px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--netflix-gray)]/60 to-black/40 backdrop-blur-md border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/30 transition-all duration-300 hover:scale-105">
+              <span className="mr-2 text-lg animate-bounce">💡</span>
+              If the player screen is not set correctly, try fullscreen and double-click on the video
+            </p>
+          </div>
+        </div>
+
+        {/* Floating action elements */}
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 animate-fade-in-right animation-delay-1000">
+          <button className="group/float w-12 h-12 bg-gradient-to-br from-[var(--netflix-red)] to-[#b91c1c] rounded-full shadow-lg hover:shadow-xl hover:shadow-[var(--netflix-red)]/30 flex items-center justify-center transition-all duration-300 hover:scale-110 animate-bounce animation-delay-1200">
+            <svg className="w-5 h-5 text-white group-hover/float:scale-125 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+          <button className="group/float w-12 h-12 bg-gradient-to-br from-black/80 to-[var(--netflix-gray)] rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 animate-bounce animation-delay-1400">
+            <svg className="w-5 h-5 text-white group-hover/float:scale-125 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+            </svg>
+          </button>
         </div>
 
       </div>

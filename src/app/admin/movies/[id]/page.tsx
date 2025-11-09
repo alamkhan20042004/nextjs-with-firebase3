@@ -23,6 +23,7 @@ type Movie = {
   heroCTALabel?: string
   heroCTAUrl?: string
   heroImageUrl?: string
+  genres?: string[]
 }
 
 export default function MovieDetailPage() {
@@ -123,45 +124,103 @@ export default function MovieDetailPage() {
           </div>
         )}
 
-        <div className="rounded-xl border border-[var(--netflix-gray)] bg-[var(--netflix-dark)]/90 backdrop-blur p-6 shadow-xl space-y-6">
-          <div className="flex items-start gap-4">
+        <div className="rounded-xl border border-[var(--netflix-gray)] bg-[var(--netflix-dark)]/90 backdrop-blur p-6 shadow-xl space-y-8">
+          <div className="flex items-start gap-6">
             <img
               src={movie.pic}
               alt={`${movie.name} poster`}
-              className="h-24 w-40 rounded object-cover border border-[var(--netflix-gray)]"
+              className="h-32 w-[9rem] rounded-lg object-cover border border-[var(--netflix-gray)] shadow-lg hover:border-[var(--netflix-red)]/50 transition-all duration-300"
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement
                 el.style.visibility = 'hidden'
               }}
             />
-            <div className="space-y-1 text-sm text-white">
-              <p><span className="font-medium text-[var(--netflix-light-gray)]">Type:</span> {movie.type === 'series' ? 'Series' : 'Movie'}</p>
-              <p><span className="font-medium text-[var(--netflix-light-gray)]">Sections:</span> {movie.sections?.length ?? 0}</p>
-              <p><span className="font-medium text-[var(--netflix-light-gray)]">Featured:</span> {movie.featured ? 'Yes' : 'No'}</p>
-              <p><span className="font-medium text-[var(--netflix-light-gray)]">Popular row:</span> {movie.popular ? 'Yes' : 'No'}</p>
-              <p><span className="font-medium text-[var(--netflix-light-gray)]">Top 10 rank:</span> {movie.topRank ?? '—'}</p>
+            <div className="space-y-3 text-sm text-white flex-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--netflix-light-gray)] min-w-[80px]">Type:</span> 
+                    <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-black/50 border border-[var(--netflix-gray)]">
+                      {movie.type === 'series' ? 'Series' : 'Movie'}
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--netflix-light-gray)] min-w-[80px]">Sections:</span> 
+                    <span className="text-white font-medium">{movie.sections?.length ?? 0}</span>
+                  </p>
+                  <div className="flex items-start gap-2">
+                    <span className="font-semibold text-[var(--netflix-light-gray)] min-w-[80px]">Genres:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {(movie.genres || []).length === 0 ? (
+                        <span className="text-[var(--netflix-light-gray)]">—</span>
+                      ) : (
+                        (movie.genres || []).map((g) => (
+                          <span key={g} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/40 text-white border border-[var(--netflix-gray)]">{g}</span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  <p className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--netflix-light-gray)] min-w-[80px]">Featured:</span> 
+                    <span className={movie.featured ? 'text-green-400 font-medium' : 'text-[var(--netflix-light-gray)]'}>{movie.featured ? 'Yes' : 'No'}</span>
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--netflix-light-gray)] min-w-[80px]">Popular:</span> 
+                    <span className={movie.popular ? 'text-green-400 font-medium' : 'text-[var(--netflix-light-gray)]'}>{movie.popular ? 'Yes' : 'No'}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--netflix-light-gray)] min-w-[80px]">Top 10:</span> 
+                    <span className="text-white font-medium">{movie.topRank ?? '—'}</span>
+                  </p>
+                </div>
+              </div>
+              
               {movie.heroDescription && (
-                <p className="text-xs text-[var(--netflix-light-gray)] mt-2">{movie.heroDescription}</p>
+                <div className="mt-4 p-3 rounded-lg bg-black/40 border border-[var(--netflix-gray)]/50">
+                  <p className="font-semibold text-[var(--netflix-light-gray)] text-xs mb-1">Hero Description:</p>
+                  <p className="text-sm text-white">{movie.heroDescription}</p>
+                </div>
               )}
+              
               {(movie.heroCTAUrl || movie.heroCTALabel) && (
-                <p className="text-xs mt-1"><span className="font-medium text-[var(--netflix-light-gray)]">Hero CTA:</span> {movie.heroCTALabel || 'Play'} {movie.heroCTAUrl && (<a href={movie.heroCTAUrl} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline break-all">{movie.heroCTAUrl}</a>)} </p>
+                <div className="mt-2 p-3 rounded-lg bg-black/40 border border-[var(--netflix-gray)]/50">
+                  <p className="font-semibold text-[var(--netflix-light-gray)] text-xs mb-1">Hero CTA:</p>
+                  <p className="text-sm">
+                    <span className="text-white font-medium">{movie.heroCTALabel || 'Play'}</span>
+                    {movie.heroCTAUrl && (
+                      <> → <a href={movie.heroCTAUrl} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline break-all">{movie.heroCTAUrl}</a></>
+                    )}
+                  </p>
+                </div>
               )}
+              
               {movie.heroImageUrl && (
-                <p className="text-xs mt-1"><span className="font-medium text-[var(--netflix-light-gray)]">Hero Image:</span> <a href={movie.heroImageUrl} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline break-all">{movie.heroImageUrl}</a></p>
+                <div className="mt-2 p-3 rounded-lg bg-black/40 border border-[var(--netflix-gray)]/50">
+                  <p className="font-semibold text-[var(--netflix-light-gray)] text-xs mb-1">Hero Image:</p>
+                  <a href={movie.heroImageUrl} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline break-all text-sm">{movie.heroImageUrl}</a>
+                </div>
               )}
             </div>
           </div>
 
           <div className="space-y-4">
+            <h2 className="text-lg font-bold text-white border-b border-[var(--netflix-gray)] pb-2">Sections & Links</h2>
             {movie.sections?.map((s, i) => (
-              <div key={i} className="rounded-md border border-[var(--netflix-gray)] p-3 bg-black/40">
-                <h3 className="font-medium text-sm mb-2 text-white">{s.name} — {s.links.length} videos</h3>
+              <div key={i} className="rounded-lg border border-[var(--netflix-gray)] p-4 bg-black/40 hover:border-[var(--netflix-gray)]/70 transition-all duration-300">
+                <h3 className="font-semibold text-base mb-3 text-white flex items-center justify-between">
+                  <span>{s.name}</span>
+                  <span className="text-xs font-normal px-2.5 py-1 rounded-full bg-[var(--netflix-red)]/20 text-[var(--netflix-red)] border border-[var(--netflix-red)]/30">{s.links.length} video{s.links.length !== 1 ? 's' : ''}</span>
+                </h3>
                 {s.links.length === 0 ? (
-                  <p className="text-xs text-[var(--netflix-light-gray)]">No links.</p>
+                  <p className="text-sm text-[var(--netflix-light-gray)] italic">No links available.</p>
                 ) : (
-                  <ul className="text-xs list-decimal pl-5 space-y-1 break-all">
+                  <ul className="text-sm list-decimal pl-5 space-y-2 break-all">
                     {s.links.map((l, idx) => (
-                      <li key={idx}><a href={l} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline">{l}</a></li>
+                      <li key={idx} className="text-[var(--netflix-light-gray)] hover:text-white transition-colors">
+                        <a href={l} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline">{l}</a>
+                      </li>
                     ))}
                   </ul>
                 )}

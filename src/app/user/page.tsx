@@ -117,7 +117,7 @@ export default function UserPage() {
       if (isAdminEmail(userEmail)) {
         router.push('/admin')
       } else {
-        // setError('This account is not premium.')
+        setError('This account is not an admin.')
       }
     } catch (e: any) {
       setError(e?.message || 'Failed to sign in or check admin.')
@@ -177,34 +177,68 @@ export default function UserPage() {
   }, [filteredItems, homeCfg])
 
   return (
-    <div className="min-h-dvh bg-[var(--netflix-black)]">
-      {/* Netflix-style top bar */}
-      <header className="sticky top-0 z-50 bg-gradient-to-b from-[var(--netflix-black)] to-transparent">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--netflix-red)]">MovieBox</h1>
-          <div className="flex-1 min-w-[200px] max-w-full order-3 sm:order-none">
-            <label className="relative block">
+    <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-[#0a0a0a] to-[var(--netflix-black)] relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-[var(--netflix-red)] rounded-full blur-3xl animate-pulse animation-delay-100"></div>
+        <div className="absolute top-3/4 right-1/3 w-24 h-24 bg-white/30 rounded-full blur-2xl animate-bounce animation-delay-200"></div>
+        <div className="absolute top-1/2 left-3/4 w-20 h-20 bg-[var(--netflix-red)]/40 rounded-full blur-xl animate-ping animation-delay-300"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-16 h-16 bg-white/20 rounded-full blur-lg animate-float animation-delay-500"></div>
+      </div>
+
+      {/* Enhanced Netflix-style top bar */}
+      <header className="sticky top-0 z-50 bg-gradient-to-b from-[var(--netflix-black)]/95 via-[var(--netflix-black)]/80 to-transparent backdrop-blur-sm border-b border-[var(--netflix-red)]/10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-3 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[var(--netflix-red)] to-[#ff4757] bg-clip-text text-transparent animate-gradient">
+            MovieBox
+          </h1>
+          <div className="flex-1 min-w-[200px] max-w-full order-3 sm:order-none animate-fade-in animation-delay-200">
+            <label className="relative block group">
               <span className="sr-only">Search</span>
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-[var(--netflix-light-gray)] group-focus-within:text-[var(--netflix-red)] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search titles"
-                className="w-full sm:w-[320px] md:w-[420px] rounded-md bg-[var(--netflix-gray)]/70 border border-[var(--netflix-gray)] px-3 py-2 text-sm text-white placeholder:text-[var(--netflix-light-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--netflix-red)]/50"
+                placeholder="Search titles, genres, actors..."
+                className="w-full sm:w-[320px] md:w-[420px] rounded-lg bg-[var(--netflix-gray)]/60 border border-[var(--netflix-gray)]/50 pl-10 pr-4 py-3 text-sm text-white placeholder:text-[var(--netflix-light-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-[var(--netflix-red)]/50 transition-all duration-300 hover:bg-[var(--netflix-gray)]/80 backdrop-blur-sm"
               />
             </label>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 animate-fade-in animation-delay-400">
             {email && (
-              <p className="text-xs sm:text-sm text-[var(--netflix-light-gray)] hidden sm:block truncate max-w-[120px]">
-                {email}
-              </p>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--netflix-gray)]/50 backdrop-blur-sm border border-[var(--netflix-gray)]/30">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-xs sm:text-sm text-[var(--netflix-light-gray)] truncate max-w-[120px]">
+                  {email}
+                </p>
+              </div>
             )}
             <button
               onClick={handleCheckAdmin}
               disabled={loading}
-              className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium disabled:opacity-60 transition-all duration-300"
+              className="group relative rounded-lg bg-gradient-to-r from-[var(--netflix-red)] to-[#b91c1c] hover:from-[#b91c1c] hover:to-[var(--netflix-red)] text-white px-4 py-2.5 text-sm font-semibold disabled:opacity-60 transition-all duration-500 hover:scale-105 hover:shadow-lg hover:shadow-[var(--netflix-red)]/30 transform"
             >
-              {loading ? 'Checking…' : 'Login'}
+              
+              <span className="relative z-10 flex items-center gap-2">
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Checking…
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Admin
+                  </>
+                )}
+              </span>
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shimmer transition-opacity duration-300"></div>
             </button>
           </div>
         </div>
@@ -212,29 +246,61 @@ export default function UserPage() {
 
       <main className="mx-auto w-full max-w-7xl pb-12">
         {error && (
-          <div className="mb-6 mx-4 sm:mx-6 rounded-md border border-[var(--netflix-red)] bg-[var(--netflix-red)]/10 text-[var(--netflix-red)] px-4 py-3 text-sm fade-in" role="alert">
-            {error}
+          <div className="mb-6 mx-4 sm:mx-6 rounded-xl border border-[var(--netflix-red)]/50 bg-gradient-to-r from-[var(--netflix-red)]/20 to-red-900/20 text-[var(--netflix-red)] px-6 py-4 text-sm animate-fade-in backdrop-blur-sm shadow-lg" role="alert">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="font-medium">{error}</span>
+            </div>
           </div>
         )}
 
         {loadingList || loadingCfg ? (
-          <div className="space-y-8 fade-in px-4 sm:px-6">
-            <LoadingSkeleton variant="banner" />
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-6 w-32 rounded bg-gray-800/60" />
+          <div className="space-y-8 animate-fade-in px-4 sm:px-6">
+            {/* Enhanced loading skeleton */}
+            <div className="relative">
+              <div className="aspect-[21/9] bg-gradient-to-r from-[var(--netflix-gray)]/40 to-black/60 rounded-2xl animate-pulse">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-2xl"></div>
+                <div className="absolute bottom-8 left-8 space-y-4">
+                  <div className="h-8 w-64 bg-white/20 rounded animate-pulse animation-delay-200"></div>
+                  <div className="h-4 w-96 bg-white/10 rounded animate-pulse animation-delay-400"></div>
+                  <div className="flex gap-3 mt-6">
+                    <div className="h-12 w-24 bg-white/20 rounded-lg animate-pulse animation-delay-600"></div>
+                    <div className="h-12 w-32 bg-white/10 rounded-lg animate-pulse animation-delay-800"></div>
+                  </div>
+                </div>
               </div>
-              <LoadingSkeleton variant="row" count={6} />
             </div>
-            <div>
-              <div className="h-6 w-32 rounded bg-gray-800/60 mb-4" />
-              <LoadingSkeleton variant="row" count={6} />
+            <div className="animate-fade-in-up animation-delay-300">
+              <div className="flex items-center justify-between mb-6">
+                <div className="h-7 w-40 rounded-lg bg-gradient-to-r from-[var(--netflix-red)]/20 to-transparent animate-pulse" />
+              </div>
+              <div className="flex gap-4 overflow-hidden">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-44 space-y-3">
+                    <div className="aspect-[2/3] bg-gradient-to-br from-[var(--netflix-gray)]/40 to-black/40 rounded-lg animate-pulse" style={{ animationDelay: `${i * 100}ms` }}></div>
+                    <div className="h-4 w-32 bg-white/10 rounded animate-pulse" style={{ animationDelay: `${i * 100 + 200}ms` }}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="animate-fade-in-up animation-delay-600">
+              <div className="h-7 w-36 rounded-lg bg-gradient-to-r from-[var(--netflix-red)]/20 to-transparent animate-pulse mb-6" />
+              <div className="flex gap-4 overflow-hidden">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-44 space-y-3">
+                    <div className="aspect-[2/3] bg-gradient-to-br from-[var(--netflix-gray)]/40 to-black/40 rounded-lg animate-pulse" style={{ animationDelay: `${i * 100 + 400}ms` }}></div>
+                    <div className="h-4 w-28 bg-white/10 rounded animate-pulse" style={{ animationDelay: `${i * 100 + 600}ms` }}></div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
           <>
             {q.trim().length > 0 ? (
-              <div className="px-4 sm:px-6">
+              <div className="px-4 sm:px-6 animate-fade-in-up">
                 <BrowseRow title={`Search results (${filteredItems.length})`} items={filteredItems} />
               </div>
             ) : (
@@ -242,18 +308,34 @@ export default function UserPage() {
                 {/* Hero Banner */}
                 {featuredItem && <HeroBanner item={featuredItem} cfg={homeCfg?.hero} />}
                 
-                <div className="px-4 sm:px-6 space-y-10 mt-8">
+                <div className="px-4 sm:px-6 space-y-12 mt-12 relative z-10">
                   {/* Popular on Netflix */}
-                  <BrowseRow title="Popular on Netflix" items={popularItems} />
+                  {popularItems.length > 0 && (
+                    <div className="animate-fade-in-up animation-delay-200">
+                      <BrowseRow title="Popular on Netflix" items={popularItems} />
+                    </div>
+                  )}
                   
                   {/* Top 10 */}
-                  <TopTenRow title="Top 10 Today" items={top10} />
+                  {top10.length > 0 && (
+                    <div className="animate-fade-in-up animation-delay-400">
+                      <TopTenRow title="Top 10 Today" items={top10} />
+                    </div>
+                  )}
                   
                   {/* Movies */}
-                  <BrowseRow title="Movies" items={movies} />
+                  {movies.length > 0 && (
+                    <div className="animate-fade-in-up animation-delay-600">
+                      <BrowseRow title="Movies" items={movies} />
+                    </div>
+                  )}
                   
                   {/* Series */}
-                  <BrowseRow title="Series" items={series} />
+                  {series.length > 0 && (
+                    <div className="animate-fade-in-up animation-delay-800">
+                      <BrowseRow title="Series" items={series} />
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -266,48 +348,93 @@ export default function UserPage() {
 
 function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
   return (
-    <div className="fade-in">
-      <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-[var(--netflix-white)]">{title}</h2>
+    <div>
+      <div className="flex items-center gap-3 mb-6 group/title cursor-pointer">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover/title:from-[var(--netflix-red)] group-hover/title:to-[#ff4757] transition-all duration-500 animate-gradient">
+          {title}
+        </h2>
+        <svg className="w-5 h-5 text-[var(--netflix-red)] opacity-0 group-hover/title:opacity-100 transition-all duration-300 transform group-hover/title:translate-x-2 group-hover/title:scale-110" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+      </div>
       {items.length === 0 ? (
-        <p className="text-sm text-[var(--netflix-light-gray)]">No {title.toLowerCase()} available.</p>
+        <p className="text-sm text-[var(--netflix-light-gray)] animate-fade-in">No {title.toLowerCase()} available.</p>
       ) : (
-        <div className="relative">
-    <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-3 snap-x snap-mandatory no-vertical-scroll overscroll-x-contain"
-      style={{ WebkitOverflowScrolling: 'touch' }}>
-            {items.map((m) => (
+        <div className="relative group/row">
+          <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-4 snap-x snap-mandatory no-vertical-scroll overscroll-x-contain hover:pb-6 transition-all duration-300"
+            style={{ WebkitOverflowScrolling: 'touch' }}>
+            {items.map((m, idx) => (
               <Link
                 key={m.id}
                 href={`/watch/${m.id}`}
-                className="netflix-card shrink-0 w-[120px] sm:w-[150px] md:w-[180px] rounded-lg overflow-hidden bg-[var(--netflix-gray)] snap-start group/card"
+                className="relative shrink-0 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden snap-start group/card transition-all duration-500 hover:scale-110 hover:z-20 animate-fade-in-right"
+                style={{ animationDelay: `${idx * 100}ms` }}
               >
-                <div className="relative">
+                <div className="relative aspect-[16/9] bg-gradient-to-br from-[var(--netflix-gray)] to-black/60">
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-xl"></div>
+                  
                   <img
                     src={m.pic}
                     alt={`${m.name} poster`}
-                    className="w-full h-[180px] sm:h-[225px] md:h-[270px] object-cover transition-all duration-300 group-hover/card:opacity-80 group-hover/card:scale-105"
+                    className="w-full h-full object-cover transition-all duration-500 group-hover/card:brightness-110 group-hover/card:contrast-110"
                     onError={(e) => {
                       const el = e.currentTarget as HTMLImageElement
                       el.style.visibility = 'hidden'
                     }}
                   />
-                  {/* Enhanced hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                    <div className="transform translate-y-2 group-hover/card:translate-y-0 transition-transform duration-300">
-                      <p className="text-xs sm:text-sm font-semibold text-white mb-1">{m.name}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] sm:text-xs text-[var(--netflix-light-gray)]">
+                  
+                  {/* Enhanced badges overlay */}
+                  {idx < 3 && (
+                    <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+                      <span className="bg-gradient-to-r from-[var(--netflix-red)] to-[#b91c1c] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+                        Recently Added
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Play button overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-300">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300 border border-white/30">
+                      <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced hover info overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+                    <div className="transform translate-y-4 group-hover/card:translate-y-0 transition-all duration-300 space-y-2">
+                      <p className="text-sm font-bold text-white line-clamp-2 group-hover/card:text-[var(--netflix-red)] transition-colors duration-300">
+                        {m.name}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-[var(--netflix-light-gray)]">
+                        <span className="px-2 py-0.5 bg-white/20 rounded-full">
                           {m.type === 'series' ? 'Series' : 'Movie'}
                         </span>
                         {m.sections && m.sections.length > 0 && (
-                          <span className="text-[10px] sm:text-xs text-[var(--netflix-light-gray)]">
-                            • {m.sections.length} {m.type === 'series' ? 'Season' : 'Part'}{m.sections.length > 1 ? 's' : ''}
+                          <span className="px-2 py-0.5 bg-[var(--netflix-red)]/30 rounded-full">
+                            {m.sections.length} {m.type === 'series' ? 'Season' : 'Part'}{m.sections.length > 1 ? 's' : ''}
                           </span>
                         )}
                       </div>
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 mt-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 animation-delay-200">
+                        <button className="w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                        </button>
+                        <button className="w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  {/* Red border on hover */}
-                  <div className="absolute inset-0 border-2 border-[var(--netflix-red)] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
+                  {/* Subtle border on hover */}
+                  <div className="absolute inset-0 border-2 border-white/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 pointer-events-none" />
                 </div>
               </Link>
             ))}
@@ -321,47 +448,66 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
 function TopTenRow({ title, items }: { title: string; items: Movie[] }) {
   return (
     <div className="fade-in">
-      <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-[var(--netflix-white)]">{title}</h2>
+      <div className="flex items-center gap-2 mb-3 group/title cursor-pointer">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover/title:text-[var(--netflix-light-gray)] transition-colors">{title}</h2>
+        <svg className="w-4 h-4 text-white opacity-0 group-hover/title:opacity-100 transition-all transform group-hover/title:translate-x-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+      </div>
       {items.length === 0 ? (
         <p className="text-sm text-[var(--netflix-light-gray)]">No items yet.</p>
       ) : (
-        <div className="relative">
-    <div className="flex gap-4 overflow-x-auto scrollbar-thin pb-3 snap-x snap-mandatory no-vertical-scroll overscroll-x-contain"
-      style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="relative group/row">
+          <div className="flex gap-2 overflow-x-auto scrollbar-thin pb-3 snap-x snap-mandatory no-vertical-scroll overscroll-x-contain"
+            style={{ WebkitOverflowScrolling: 'touch' }}>
             {items.map((m, idx) => (
               <Link
                 key={m.id}
                 href={`/watch/${m.id}`}
                 className="relative group/top10 shrink-0 snap-start"
               >
-                {/* Ranking number backdrop */}
-                <span className="absolute -left-2 sm:-left-3 bottom-[-8px] sm:bottom-[-10px] text-[96px] sm:text-[120px] md:text-[160px] font-black text-white/10 leading-none select-none pointer-events-none z-0 group-hover/top10:text-white/20 transition-colors duration-300">
-                  {idx + 1}
-                </span>
-                {/* Poster */}
-                <div className="relative z-10 w-[120px] sm:w-[150px] md:w-[180px] rounded-lg overflow-hidden netflix-card bg-[var(--netflix-gray)]">
-                  <img
-                    src={m.pic}
-                    alt={`${m.name} poster`}
-                    className="w-full h-[180px] sm:h-[225px] md:h-[270px] object-cover transition-all duration-300 group-hover/top10:opacity-80 group-hover/top10:scale-105"
-                    onError={(e) => {
-                      const el = e.currentTarget as HTMLImageElement
-                      el.style.visibility = 'hidden'
-                    }}
-                  />
-                  {/* Enhanced hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover/top10:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                    <div className="transform translate-y-2 group-hover/top10:translate-y-0 transition-transform duration-300">
-                      <p className="text-xs sm:text-sm font-semibold text-white mb-1">{m.name}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] sm:text-xs text-[var(--netflix-light-gray)]">
-                          #{idx + 1} in Top 10
-                        </span>
+                {/* Large ranking number with TOP 10 badge */}
+                <div className="absolute -left-3 sm:-left-4 md:-left-6 top-0 bottom-0 flex items-end z-0 pointer-events-none">
+                  <span className="text-[100px] sm:text-[140px] md:text-[180px] lg:text-[220px] font-black leading-none select-none" 
+                    style={{
+                      WebkitTextStroke: '2px var(--netflix-gray)',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: '0 0 20px rgba(0,0,0,0.5)'
+                    }}>
+                    {idx + 1}
+                  </span>
+                </div>
+                {/* Poster card */}
+                <div className="relative z-10 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded overflow-hidden transition-transform duration-300 hover:scale-110">
+                  <div className="relative aspect-[16/9] bg-[var(--netflix-gray)]">
+                    {/* TOP 10 badge */}
+                    <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2 z-10">
+                      <div className="bg-[var(--netflix-red)] text-white text-[10px] font-bold px-2 py-1 flex items-center gap-1">
+                        <span className="text-xs">TOP</span>
+                        <span className="text-lg leading-none">{idx < 9 ? '10' : '10'}</span>
                       </div>
                     </div>
+                    <img
+                      src={m.pic}
+                      alt={`${m.name} poster`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const el = e.currentTarget as HTMLImageElement
+                        el.style.visibility = 'hidden'
+                      }}
+                    />
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover/top10:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                      <div className="transform translate-y-2 group-hover/top10:translate-y-0 transition-transform duration-200">
+                        <p className="text-xs sm:text-sm font-bold text-white mb-1 line-clamp-2">{m.name}</p>
+                        <div className="flex items-center gap-2 text-[10px] sm:text-xs text-[var(--netflix-light-gray)]">
+                          <span>#{idx + 1} in Top 10</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Border on hover */}
+                    <div className="absolute inset-0 border-2 border-white/20 opacity-0 group-hover/top10:opacity-100 transition-opacity duration-200 pointer-events-none" />
                   </div>
-                  {/* Red border on hover */}
-                  <div className="absolute inset-0 border-2 border-[var(--netflix-red)] opacity-0 group-hover/top10:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
                 </div>
               </Link>
             ))}
