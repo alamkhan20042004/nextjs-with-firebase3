@@ -108,6 +108,10 @@ export default function EpisodePlayerPage() {
     const url = current?.url || ''
     return /rumble\.com/i.test(url)
   }, [current])
+  const isOdysee = useMemo(() => {
+    const url = current?.url || ''
+    return /odysee\.com/i.test(url)
+  }, [current])
 
   const embed = useMemo(() => {
     const url = current?.url || ''
@@ -362,7 +366,32 @@ export default function EpisodePlayerPage() {
             </>
           )}
 
-          {/* Other providers overlay: transparent click-blocker; exclude Odysee so its controls remain usable */}
+          {/* ODYSEE OVERLAYS - Block outbound channel/title links and watermark areas */}
+          {hideBranding && isOdysee && (
+            <>
+              {/* Top bar shield to block channel/title clickable header */}
+              <div
+                aria-hidden="true"
+                className="absolute left-0 right-0 top-0 z-30 bg-transparent pointer-events-auto"
+                style={{
+                  height: smallScreen || shortViewport ? '48px' : '56px'
+                }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+              />
+              {/* Bottom-right small shield for watermark/outbound area */}
+              <div
+                aria-hidden="true"
+                className="absolute bottom-0 right-0 z-30 bg-transparent pointer-events-auto"
+                style={{
+                  width: smallScreen ? '70px' : '90px',
+                  height: smallScreen ? '56px' : '72px'
+                }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+              />
+            </>
+          )}
+
+          {/* Other providers overlay: transparent click-blocker; exclude Odysee handled above */}
           {hideBranding && !isRumble && embed.provider !== 'odysee' && (
             <div
               aria-hidden="true"
@@ -436,7 +465,7 @@ export default function EpisodePlayerPage() {
             <p className="relative text-xs sm:text-sm text-[var(--netflix-light-gray)] text-center px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--netflix-gray)]/60 to-black/40 backdrop-blur-md border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/30 transition-all duration-300 hover:scale-105">
               <span className="mr-2 text-lg animate-bounce">💡</span>
               {/* If the player screen is not set correctly, try fullscreen and double-click on the video */}
-              If the video is not playing, that's means your internet connection is slow or unstable.
+              Takes some time. If the video is not playing, that's means your internet connection is slow or unstable.
             </p>
           </div>
         </div>
