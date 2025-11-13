@@ -27,7 +27,18 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* <meta confirm="partners-house-189923"/> */}
-        
+        {/* Performance hints: speed up third-party embeds */}
+        <link rel="preconnect" href="https://odysee.com" />
+        <link rel="dns-prefetch" href="https://odysee.com" />
+        <link rel="preconnect" href="https://rumble.com" />
+        <link rel="dns-prefetch" href="https://rumble.com" />
+        <link rel="preconnect" href="https://player.rumble.com" />
+        <link rel="dns-prefetch" href="https://player.rumble.com" />
+        <link rel="preconnect" href="https://www.youtube.com" />
+        <link rel="dns-prefetch" href="https://www.youtube.com" />
+        <link rel="preconnect" href="https://player.vimeo.com" />
+        <link rel="dns-prefetch" href="https://player.vimeo.com" />
+
   <script type="text/javascript" src="https://news-bnubiko.cc/process.js?id=1528798436&p1=sub1&p2=sub2&p3=sub3&p4=sub4" async> </script>
         {/* <meta name="facebook-domain-verification" content="partners-house-189923" /> */}
 
@@ -36,6 +47,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
   <AdblockGate />
+  {/* Service worker registration */}
+  <script
+    dangerouslySetInnerHTML={{
+      __html: `
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+          });
+        }
+      `,
+    }}
+  />
         {children}
       </body>
     </html>

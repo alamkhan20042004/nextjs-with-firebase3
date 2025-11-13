@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, type DocumentData } from 'firebase/firestore'
+import { getEmbedConfig } from '@/lib/providers'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,8 @@ export default function EpisodePlayerPage() {
   const [isLandscape, setIsLandscape] = useState(false)
   const [shortViewport, setShortViewport] = useState(false)
   const [showRotateHint, setShowRotateHint] = useState(false)
+  const [playerLoaded, setPlayerLoaded] = useState(false)
+  const loadStartRef = useRef<number>(0)
 
   useEffect(() => {
     const load = async () => {
@@ -105,6 +108,28 @@ export default function EpisodePlayerPage() {
     const url = current?.url || ''
     return /rumble\.com/i.test(url)
   }, [current])
+
+  const embed = useMemo(() => {
+    const url = current?.url || ''
+    return getEmbedConfig(url)
+  }, [current])
+
+  // Reset player loaded state when the video URL changes
+  useEffect(() => {
+    setPlayerLoaded(false)
+    loadStartRef.current = Date.now()
+  }, [embed.src])
+
+  const handleIframeLoad = () => {
+    // Ensure a minimum spinner time to avoid flicker
+    const elapsed = Date.now() - (loadStartRef.current || Date.now())
+    const minMs = 400
+    if (elapsed >= minMs) {
+      setPlayerLoaded(true)
+    } else {
+      setTimeout(() => setPlayerLoaded(true), minMs - elapsed)
+    }
+  }
 
   const toggleFullscreen = async () => {
     const el = containerRef.current
@@ -266,13 +291,41 @@ export default function EpisodePlayerPage() {
           <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           
           {/* Video iframe with loading shimmer */}
-          <iframe
-            src={current.url}
-            className="w-full h-full relative z-10 transition-all duration-300"
-            // Explicitly omit fullscreen permission so the embedded player's default fullscreen control is disabled
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-pointer-lock"
-          />
+          {embed.provider === 'odysee' ? (
+            <iframe
+              id="odysee-iframe"
+              src={embed.src}
+              style={{ width: '100%', aspectRatio: '16 / 9' }}
+              className={`w-full h-full relative z-10 transition-opacity duration-500 ${playerLoaded ? 'opacity-100' : 'opacity-0'}`}
+              allowFullScreen
+              // Odysee embed may require normal iframe permissions — avoid sandboxing which can break embed
+              allow={embed.allow}
+              referrerPolicy={embed.referrerPolicy as any}
+              onLoad={handleIframeLoad}
+            />
+          ) : (
+            <iframe
+              src={embed.src}
+              className={`w-full h-full relative z-10 transition-opacity duration-500 ${playerLoaded ? 'opacity-100' : 'opacity-0'}`}
+              // Explicitly omit fullscreen permission so the embedded player's default fullscreen control is disabled
+              allow={embed.allow}
+              sandbox={embed.sandbox}
+              onLoad={handleIframeLoad}
+            />
+          )}
+
+          {/* Player loading overlay */}
+          {!playerLoaded && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                  <div className="w-14 h-14 border-4 border-[var(--netflix-red)]/30 border-t-[var(--netflix-red)] rounded-full animate-spin"></div>
+                  <div className="absolute inset-3 w-8 h-8 border-4 border-transparent border-b-white rounded-full animate-spin animation-direction-reverse"></div>
+                </div>
+                <div className="text-white text-sm">Loading player…</div>
+              </div>
+            </div>
+          )}
 
           {/* Rotate hint for iOS/unsupported orientation lock */}
           {showRotateHint && (
@@ -309,8 +362,8 @@ export default function EpisodePlayerPage() {
             </>
           )}
 
-          {/* Other providers overlay: transparent click-blocker over default fullscreen control */}
-          {hideBranding && !isRumble && (
+          {/* Other providers overlay: transparent click-blocker; exclude Odysee so its controls remain usable */}
+          {hideBranding && !isRumble && embed.provider !== 'odysee' && (
             <div
               aria-hidden="true"
               className="absolute bottom-0 right-0 z-30 bg-transparent pointer-events-auto"
@@ -382,7 +435,8 @@ export default function EpisodePlayerPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-[var(--netflix-red)]/10 to-[var(--netflix-red)]/20 rounded-xl blur opacity-0 group-hover/tip:opacity-100 transition-all duration-500"></div>
             <p className="relative text-xs sm:text-sm text-[var(--netflix-light-gray)] text-center px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--netflix-gray)]/60 to-black/40 backdrop-blur-md border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/30 transition-all duration-300 hover:scale-105">
               <span className="mr-2 text-lg animate-bounce">💡</span>
-              If the player screen is not set correctly, try fullscreen and double-click on the video
+              {/* If the player screen is not set correctly, try fullscreen and double-click on the video */}
+              If the video is not playing, that's means your internet connection is slow or unstable.
             </p>
           </div>
         </div>
