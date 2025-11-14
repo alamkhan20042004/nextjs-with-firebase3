@@ -43,6 +43,7 @@ export default function EpisodePlayerPage() {
   const loadTimeoutRef = useRef<number | null>(null)
   const [showControls, setShowControls] = useState(false)
   const controlsTimerRef = useRef<number | null>(null)
+  const headerHeight = (smallScreen || shortViewport) ? 56 : 68
 
   useEffect(() => {
     const load = async () => {
@@ -371,13 +372,7 @@ export default function EpisodePlayerPage() {
               id="odysee-iframe"
               key={`${embed.src}:${reloadNonce}`}
               src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}mbx=${reloadNonce}`}
-              style={{
-                width: '100%',
-                aspectRatio: '16 / 9',
-                position: 'absolute',
-                top: isFullscreen ? `-${(smallScreen || shortViewport) ? 56 : 68}px` : '0px',
-                height: isFullscreen ? `calc(100% + ${(smallScreen || shortViewport) ? 56 : 68}px)` : '100%'
-              }}
+              style={{ width: '100%', aspectRatio: '16 / 9' }}
               className={`w-full h-full relative z-10 transition-opacity duration-500 ${playerLoaded ? 'opacity-100' : 'opacity-0'}`}
               // Do not allow iframe fullscreen; use our wrapper fullscreen to keep overlays visible
               allow={embed.allow}
@@ -461,30 +456,31 @@ export default function EpisodePlayerPage() {
           )}
 
           {/* ODYSEE OVERLAYS - Block outbound channel/title links and watermark areas */}
-          {hideBranding && isOdysee && !isFullscreen && (
+          {hideBranding && isOdysee && (
             <>
               {/* Top bar shield to block and visually hide Odysee channel/title */}
               <div
                 aria-hidden="true"
                 className="absolute left-0 right-0 top-0 z-40 pointer-events-auto"
                 style={{
-                  // Extra height to fully cover title + logo on various DPRs
-                  height: smallScreen || shortViewport ? '56px' : '68px',
-                  // Respect safe-area at top (iOS notch) to ensure full cover
+                  height: headerHeight,
                   paddingTop: 'env(safe-area-inset-top, 0px)',
-                  background: 'rgba(0,0,0,0.85)'
+                  background: 'rgba(0,0,0,0.85)',
+                  opacity: isFullscreen && !showControls ? 0 : 1,
+                  transition: 'opacity 250ms'
                 }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               />
-              {/* Backup overlay with slight offset to handle border variations */}
+              {/* Bottom bar shield for symmetry when header hidden */}
               <div
                 aria-hidden="true"
-                className="absolute left-0 right-0 top-[2px] z-40 pointer-events-auto"
+                className="absolute left-0 right-0 bottom-0 z-40 pointer-events-none"
                 style={{
-                  height: smallScreen || shortViewport ? '54px' : '66px',
-                  background: 'rgba(0,0,0,0.85)'
+                  height: headerHeight,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0))',
+                  opacity: isFullscreen && !showControls ? 0 : 1,
+                  transition: 'opacity 250ms'
                 }}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               />
               {/* Bottom-right small shield for watermark/outbound area */}
               <div
