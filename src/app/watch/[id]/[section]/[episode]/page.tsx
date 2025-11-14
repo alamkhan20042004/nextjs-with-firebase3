@@ -38,6 +38,11 @@ export default function EpisodePlayerPage() {
   const [showRotateHint, setShowRotateHint] = useState(false)
   const [playerLoaded, setPlayerLoaded] = useState(false)
   const loadStartRef = useRef<number>(0)
+  const [playerError, setPlayerError] = useState(false)
+  const [reloadNonce, setReloadNonce] = useState(0)
+  const loadTimeoutRef = useRef<number | null>(null)
+  const [showControls, setShowControls] = useState(false)
+  const controlsTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -121,7 +126,17 @@ export default function EpisodePlayerPage() {
   // Reset player loaded state when the video URL changes
   useEffect(() => {
     setPlayerLoaded(false)
+    setPlayerError(false)
     loadStartRef.current = Date.now()
+    // Setup load timeout for resilience
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+    loadTimeoutRef.current = window.setTimeout(() => {
+      // If not loaded within 12s, show error overlay with retry
+      setPlayerError(true)
+    }, 12000)
   }, [embed.src])
 
   const handleIframeLoad = () => {
@@ -133,6 +148,25 @@ export default function EpisodePlayerPage() {
     } else {
       setTimeout(() => setPlayerLoaded(true), minMs - elapsed)
     }
+    // Clear timeout when load completes
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+  }
+
+  const retryLoad = () => {
+    setPlayerError(false)
+    setPlayerLoaded(false)
+    setReloadNonce((n) => n + 1)
+    loadStartRef.current = Date.now()
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+    loadTimeoutRef.current = window.setTimeout(() => {
+      setPlayerError(true)
+    }, 12000)
   }
 
   const toggleFullscreen = async () => {
@@ -174,6 +208,25 @@ export default function EpisodePlayerPage() {
         const anyScreen: any = screen as any
         if (anyScreen?.orientation?.unlock) anyScreen.orientation.unlock()
       } catch {}
+      // When leaving fullscreen, always show controls normally
+      setShowControls(true)
+      if (controlsTimerRef.current) {
+        clearTimeout(controlsTimerRef.current)
+        controlsTimerRef.current = null
+      }
+    }
+  }, [isFullscreen])
+
+  // Auto-hide controls shortly after entering fullscreen
+  useEffect(() => {
+    if (isFullscreen) {
+      setShowControls(false)
+      if (controlsTimerRef.current) {
+        clearTimeout(controlsTimerRef.current)
+      }
+      controlsTimerRef.current = window.setTimeout(() => {
+        setShowControls(false)
+      }, 2500)
     }
   }, [isFullscreen])
 
@@ -290,6 +343,24 @@ export default function EpisodePlayerPage() {
         <div 
           ref={containerRef} 
           className="relative aspect-video w-full rounded-xl overflow-hidden border border-[var(--netflix-red)]/30 shadow-2xl bg-black transform transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(229,9,20,0.3)] animate-fade-in-up animation-delay-500 group"
+          onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFullscreen(); }}
+          onClick={(e) => {
+            // In fullscreen, toggle visibility of our controls on single click/tap
+            if (!isFullscreen) return
+            e.preventDefault();
+            e.stopPropagation();
+            const next = !showControls
+            setShowControls(next)
+            if (controlsTimerRef.current) {
+              clearTimeout(controlsTimerRef.current)
+              controlsTimerRef.current = null
+            }
+            if (next) {
+              controlsTimerRef.current = window.setTimeout(() => {
+                setShowControls(false)
+              }, 2500)
+            }
+          }}
         >
           {/* Glowing border effect */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
@@ -298,18 +369,25 @@ export default function EpisodePlayerPage() {
           {embed.provider === 'odysee' ? (
             <iframe
               id="odysee-iframe"
-              src={embed.src}
-              style={{ width: '100%', aspectRatio: '16 / 9' }}
+              key={`${embed.src}:${reloadNonce}`}
+              src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}mbx=${reloadNonce}`}
+              style={{
+                width: '100%',
+                aspectRatio: '16 / 9',
+                position: 'absolute',
+                top: isFullscreen ? `-${(smallScreen || shortViewport) ? 56 : 68}px` : '0px',
+                height: isFullscreen ? `calc(100% + ${(smallScreen || shortViewport) ? 56 : 68}px)` : '100%'
+              }}
               className={`w-full h-full relative z-10 transition-opacity duration-500 ${playerLoaded ? 'opacity-100' : 'opacity-0'}`}
-              allowFullScreen
-              // Odysee embed may require normal iframe permissions — avoid sandboxing which can break embed
+              // Do not allow iframe fullscreen; use our wrapper fullscreen to keep overlays visible
               allow={embed.allow}
               referrerPolicy={embed.referrerPolicy as any}
               onLoad={handleIframeLoad}
             />
           ) : (
             <iframe
-              src={embed.src}
+              key={`${embed.src}:${reloadNonce}`}
+              src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}mbx=${reloadNonce}`}
               className={`w-full h-full relative z-10 transition-opacity duration-500 ${playerLoaded ? 'opacity-100' : 'opacity-0'}`}
               // Explicitly omit fullscreen permission so the embedded player's default fullscreen control is disabled
               allow={embed.allow}
@@ -319,7 +397,7 @@ export default function EpisodePlayerPage() {
           )}
 
           {/* Player loading overlay */}
-          {!playerLoaded && (
+          {!playerLoaded && !playerError && (
             <div className="absolute inset-0 z-40 flex items-center justify-center bg-black">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
@@ -327,6 +405,22 @@ export default function EpisodePlayerPage() {
                   <div className="absolute inset-3 w-8 h-8 border-4 border-transparent border-b-white rounded-full animate-spin animation-direction-reverse"></div>
                 </div>
                 <div className="text-white text-sm">Loading player…</div>
+              </div>
+            </div>
+          )}
+
+          {/* Player error overlay with retry */}
+          {playerError && !playerLoaded && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black">
+              <div className="flex flex-col items-center gap-4">
+                <div className="text-white text-sm">Player failed to load. Please retry.</div>
+                <button
+                  type="button"
+                  onClick={retryLoad}
+                  className="px-4 py-2 rounded-md bg-[var(--netflix-red)] text-white text-sm hover:brightness-110"
+                >
+                  Retry
+                </button>
               </div>
             </div>
           )}
@@ -367,14 +461,28 @@ export default function EpisodePlayerPage() {
           )}
 
           {/* ODYSEE OVERLAYS - Block outbound channel/title links and watermark areas */}
-          {hideBranding && isOdysee && (
+          {hideBranding && isOdysee && !isFullscreen && (
             <>
-              {/* Top bar shield to block channel/title clickable header */}
+              {/* Top bar shield to block and visually hide Odysee channel/title */}
               <div
                 aria-hidden="true"
-                className="absolute left-0 right-0 top-0 z-30 bg-transparent pointer-events-auto"
+                className="absolute left-0 right-0 top-0 z-40 pointer-events-auto"
                 style={{
-                  height: smallScreen || shortViewport ? '48px' : '56px'
+                  // Extra height to fully cover title + logo on various DPRs
+                  height: smallScreen || shortViewport ? '56px' : '68px',
+                  // Respect safe-area at top (iOS notch) to ensure full cover
+                  paddingTop: 'env(safe-area-inset-top, 0px)',
+                  background: 'rgba(0,0,0,0.85)'
+                }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+              />
+              {/* Backup overlay with slight offset to handle border variations */}
+              <div
+                aria-hidden="true"
+                className="absolute left-0 right-0 top-[2px] z-40 pointer-events-auto"
+                style={{
+                  height: smallScreen || shortViewport ? '54px' : '66px',
+                  background: 'rgba(0,0,0,0.85)'
                 }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               />
@@ -417,7 +525,8 @@ export default function EpisodePlayerPage() {
             type="button"
             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             onClick={toggleFullscreen}
-            className="absolute top-3 right-3 z-50 group/fs rounded-lg bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-sm text-white text-sm px-4 py-2 hover:from-[var(--netflix-red)]/90 hover:to-[var(--netflix-red)]/70 transition-all duration-300 hover:scale-110 hover:shadow-lg border border-white/20 hover:border-[var(--netflix-red)]/50"
+            className={`absolute top-3 right-3 z-50 group/fs rounded-lg bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-sm text-white text-sm px-4 py-2 transition-all duration-300 border border-white/20 ${isFullscreen ? (showControls ? 'opacity-100' : 'opacity-0 pointer-events-none') : 'opacity-100 hover:from-[var(--netflix-red)]/90 hover:to-[var(--netflix-red)]/70 hover:scale-110 hover:shadow-lg hover:border-[var(--netflix-red)]/50'}`}
+            onMouseDown={(e) => { e.stopPropagation() }}
           >
             <span className="flex items-center gap-2">
               <svg 

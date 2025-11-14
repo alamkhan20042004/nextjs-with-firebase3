@@ -104,7 +104,8 @@ export function getEmbedConfig(input: string): EmbedConfig {
         provider,
         src: toOdyseeEmbed(url),
         id: 'odysee-iframe',
-        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen',
+        // Do NOT allow fullscreen so double-click doesn't enter iframe fullscreen
+        allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
         referrerPolicy: 'strict-origin-when-cross-origin',
         // No sandbox
       }
