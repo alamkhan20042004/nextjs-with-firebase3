@@ -44,6 +44,7 @@ export default function EpisodePlayerPage() {
   const [showControls, setShowControls] = useState(false)
   const controlsTimerRef = useRef<number | null>(null)
   const headerHeight = (smallScreen || shortViewport) ? 56 : 68
+  const [isCoarse, setIsCoarse] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -109,6 +110,14 @@ export default function EpisodePlayerPage() {
   useEffect(() => {
     setShowRotateHint(isFullscreen && (smallScreen || window.matchMedia('(pointer:coarse)').matches) && !isLandscape)
   }, [isFullscreen, smallScreen, isLandscape])
+
+  // Detect coarse pointer once (mobile/tablet)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      setIsCoarse(window.matchMedia('(pointer:coarse)').matches)
+    } catch {}
+  }, [])
 
   const isRumble = useMemo(() => {
     const url = current?.url || ''
@@ -465,19 +474,37 @@ export default function EpisodePlayerPage() {
                 style={{
                   height: headerHeight,
                   paddingTop: 'env(safe-area-inset-top, 0px)',
-                  background: 'rgba(0,0,0,0.85)',
+                  background: 'rgba(0,0,0,0.98)',
                   opacity: isFullscreen && !showControls ? 0 : 1,
                   transition: 'opacity 250ms'
                 }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               />
+              {/* Fullscreen persistent shield for Odysee logo (top-right) on all devices */}
+              {isFullscreen && (
+                <div
+                  aria-hidden="true"
+                  className="absolute z-40"
+                  style={{
+                    top: 0,
+                    right: 0,
+                    width: smallScreen ? '96px' : '120px',
+                    height: smallScreen ? '54px' : '70px',
+                    paddingTop: 'env(safe-area-inset-top, 0px)',
+                    paddingRight: 'env(safe-area-inset-right, 0px)',
+                    background: 'rgba(0,0,0,1)',
+                    pointerEvents: showControls ? 'none' : 'auto'
+                  }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                />
+              )}
               {/* Bottom bar shield for symmetry when header hidden */}
               <div
                 aria-hidden="true"
                 className="absolute left-0 right-0 bottom-0 z-40 pointer-events-none"
                 style={{
                   height: headerHeight,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0))',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))',
                   opacity: isFullscreen && !showControls ? 0 : 1,
                   transition: 'opacity 250ms'
                 }}

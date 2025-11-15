@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -521,6 +521,8 @@ function TopTenRow({ title, items }: { title: string; items: Movie[] }) {
 }
 
 function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; description?: string; ctaLabel?: string; ctaUrl?: string } }) {
+  const hasFirstPlayable = !!(item.sections?.[0]?.links?.[0])
+  const playHref = hasFirstPlayable ? `/watch/${item.id}/0/0` : `/watch/${item.id}`
   return (
     <div className="relative w-full h-[46vh] sm:h-[60vh] md:h-[70vh] overflow-hidden fade-in">
       {/* Background image with gradient overlay */}
@@ -553,7 +555,7 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
           </p>
           <div className="flex items-center gap-3 pt-2">
             <Link
-              href={(cfg?.ctaUrl || item.heroCTAUrl || `/watch/${item.id}`)}
+              href={playHref}
               className="flex items-center gap-2 bg-white hover:bg-white/90 text-black font-semibold px-5 py-2.5 rounded-md transition-all duration-300 shadow-lg w-fit"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
