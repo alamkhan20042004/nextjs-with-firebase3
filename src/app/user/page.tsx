@@ -370,73 +370,120 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                   <Link
                     key={m.id}
                     href={`/watch/${m.id}`}
-                    className="relative shrink-0 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden snap-start group/card transition-all duration-500 hover:scale-110 hover:z-20 animate-fade-in-right"
+                    className="relative shrink-0 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden snap-start group/card transition-all duration-500 hover:scale-110 hover:z-20 animate-fade-in-right shadow-lg hover:shadow-2xl hover:shadow-[var(--netflix-red)]/20"
                     style={{ animationDelay: `${idx * 100}ms` }}
                   >
-                    {/* Consistent portrait style like TOP 10 row on mobile */}
-                    <div className="relative aspect-[2/3] md:aspect-[16/9] bg-gradient-to-br from-[var(--netflix-gray)] to-black/60">
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-xl"></div>
+                    {/* Enhanced card design with premium feel */}
+                    <div className="relative aspect-[2/3] md:aspect-[16/9] bg-gradient-to-br from-[var(--netflix-gray)] via-gray-800 to-black/80 overflow-hidden">
+                      {/* Premium glow effects */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-purple-500/10 to-[var(--netflix-red)]/20 opacity-0 group-hover/card:opacity-100 transition-all duration-500 animate-pulse"></div>
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--netflix-red)] via-pink-500 to-[var(--netflix-red)] rounded-xl opacity-0 group-hover/card:opacity-30 blur-sm transition-all duration-500"></div>
+                      
+                      {/* Animated border shine */}
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 animate-[shimmer_2s_ease-in-out_infinite]"></div>
                   
-              <img
-                src={m.pic}
-                alt={m.name}
-                className="w-full aspect-[2/3] object-cover rounded-lg transition-all duration-500 group-hover:brightness-110 group-hover:scale-105 transform"
-                onError={(e) => {
-                  const el = e.currentTarget as HTMLImageElement
-                  el.style.display = 'none'
-                }}
-              />                  {/* Enhanced badges overlay */}
-                  {idx < 3 && (
-                    <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
-                      <span className="bg-gradient-to-r from-[var(--netflix-red)] to-[#b91c1c] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
-                        Recently Added
-                      </span>
-                    </div>
-                  )}
+                      <img
+                        src={m.pic}
+                        alt={m.name}
+                        className="w-full h-full object-cover transition-all duration-700 group-hover:brightness-125 group-hover:contrast-110 group-hover:scale-105 transform filter"
+                        onError={(e) => {
+                          const el = e.currentTarget as HTMLImageElement
+                          el.style.display = 'none'
+                        }}
+                      />
+                      
+                      {/* Quality badge */}
+                      <div className="absolute top-3 right-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[9px] font-bold px-2 py-1 rounded-full shadow-lg opacity-90 group-hover/card:opacity-100 transition-all duration-300">
+                        4K HDR
+                      </div>                  {/* Enhanced badges overlay */}
+                      {/* Premium badges */}
+                      {idx < 3 && (
+                        <div className="absolute top-3 left-3 z-20">
+                          <div className="bg-gradient-to-r from-[var(--netflix-red)] via-red-500 to-[var(--netflix-red)] text-white text-[9px] font-bold px-3 py-1.5 rounded-full shadow-xl border border-white/20 backdrop-blur-sm animate-pulse">
+                            ✨ NEW
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Trending indicator */}
+                      {idx % 4 === 0 && (
+                        <div className="absolute top-3 left-3 z-20">
+                          <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-[9px] font-bold px-3 py-1.5 rounded-full shadow-xl border border-white/20 backdrop-blur-sm">
+                            🔥 TRENDING
+                          </div>
+                        </div>
+                      )}
                   
-                  {/* Play button overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-300">
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300 border border-white/30">
-                      <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {/* Enhanced hover info overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex flex-col justify-end p-3 sm:p-4">
-                    <div className="transform translate-y-4 group-hover/card:translate-y-0 transition-all duration-300 space-y-2">
-                      <p className="text-[13px] sm:text-[14px] md:text-sm font-bold text-white line-clamp-2 group-hover/card:text-[var(--netflix-red)] transition-colors duration-300">
-                        {m.name}
-                      </p>
-                          <div className="flex items-center gap-2 text-[11px] sm:text-[12px] md:text-xs text-[var(--netflix-light-gray)]">
-                        <span className="px-2 py-0.5 bg-white/20 rounded-full">
-                          {m.type === 'series' ? 'Series' : 'Movie'}
-                        </span>
-                        {m.sections && m.sections.length > 0 && (
-                          <span className="px-2 py-0.5 bg-[var(--netflix-red)]/30 rounded-full">
-                            {m.sections.length} {m.type === 'series' ? 'Season' : 'Part'}{m.sections.length > 1 ? 's' : ''}
-                          </span>
-                        )}
+                      {/* Enhanced play button */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-500">
+                        <div className="relative">
+                          {/* Pulsing ring effect */}
+                          <div className="absolute inset-0 w-20 h-20 bg-white/10 rounded-full animate-ping"></div>
+                          <div className="relative w-20 h-20 bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover/card:scale-110 transition-all duration-300 border-2 border-white/40 shadow-2xl">
+                            <svg className="w-8 h-8 text-white ml-1 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-2 mt-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 animation-delay-200">
-                        <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                        </button>
-                        <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                        </button>
+                  
+                      {/* Premium info overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover/card:opacity-100 transition-all duration-500 flex flex-col justify-end p-4">
+                        <div className="transform translate-y-6 group-hover/card:translate-y-0 transition-all duration-500 space-y-3">
+                          <div className="space-y-2">
+                            <h3 className="text-sm font-bold text-white line-clamp-2 group-hover/card:text-transparent group-hover/card:bg-gradient-to-r group-hover/card:from-[var(--netflix-red)] group-hover/card:to-pink-400 group-hover/card:bg-clip-text transition-all duration-500">
+                              {m.name}
+                            </h3>
+                            
+                            {/* Rating stars */}
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <svg key={i} className={`w-3 h-3 ${i < 4 ? 'text-yellow-400' : 'text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              ))}
+                              <span className="text-xs text-yellow-400 ml-1 font-medium">4.2</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-[10px] text-[var(--netflix-light-gray)]">
+                            <span className="px-2 py-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full border border-white/20 backdrop-blur-sm">
+                              {m.type === 'series' ? '📺 Series' : '🎬 Movie'}
+                            </span>
+                            {m.sections && m.sections.length > 0 && (
+                              <span className="px-2 py-1 bg-gradient-to-r from-[var(--netflix-red)]/20 to-pink-500/20 rounded-full border border-white/20 backdrop-blur-sm">
+                                {m.sections.length} {m.type === 'series' ? 'Season' : 'Part'}{m.sections.length > 1 ? 's' : ''}
+                              </span>
+                            )}
+                            <span className="px-2 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-white/20 backdrop-blur-sm">
+                              ✨ Premium
+                            </span>
+                          </div>
+                          
+                          {/* Enhanced action buttons */}
+                          <div className="flex items-center gap-3 mt-3 opacity-0 group-hover/card:opacity-100 transition-all duration-700 delay-200">
+                            <button className="flex items-center gap-1 bg-gradient-to-r from-[var(--netflix-red)] to-red-600 hover:from-red-600 hover:to-[var(--netflix-red)] text-white px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all duration-300 hover:scale-105 shadow-lg">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                              </svg>
+                              Play
+                            </button>
+                            <button className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 backdrop-blur-sm border border-white/20">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                            </button>
+                            <button className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 backdrop-blur-sm border border-white/20">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  {/* Subtle border on hover */}
-                  <div className="absolute inset-0 border-2 border-white/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                      {/* Premium border effects */}
+                      <div className="absolute inset-0 border-2 border-gradient-to-r from-[var(--netflix-red)]/40 via-pink-500/40 to-[var(--netflix-red)]/40 opacity-0 group-hover/card:opacity-100 transition-all duration-300 pointer-events-none rounded-xl" />
+                      <div className="absolute inset-0 border border-white/30 opacity-0 group-hover/card:opacity-60 transition-all duration-500 pointer-events-none rounded-xl" />
                 </div>
               </Link>
             ))}
@@ -554,7 +601,7 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
               : 'Experience this captivating story that will keep you on the edge of your seat.')}
           </p>
           <div className="flex items-center gap-3 pt-2">
-            <Link
+            {/* <Link
               href={playHref}
               className="flex items-center gap-2 bg-white hover:bg-white/90 text-black font-semibold px-5 py-2.5 rounded-md transition-all duration-300 shadow-lg w-fit"
             >
@@ -571,7 +618,7 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               More Info
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
+import DownloadCTA from '@/components/DownloadCTA'
 import { useParams, useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where, type DocumentData } from 'firebase/firestore'
@@ -210,7 +211,7 @@ export default function WatchLandingPage() {
             </p>
 
             <div className="flex items-center gap-4 pt-4 animate-fade-in-up animation-delay-1000">
-              {movie.sections?.[0]?.links?.[0] && (
+              {/* {movie.sections?.[0]?.links?.[0] && (
                 <Link
                   href={`/watch/${movie.id}/0/0`}
                   className="group relative flex items-center gap-3 bg-white hover:bg-white/95 text-black px-8 py-4 rounded-lg font-bold text-lg transition-all duration-500 hover:scale-105 hover:shadow-xl shadow-lg"
@@ -220,13 +221,13 @@ export default function WatchLandingPage() {
                   </svg>
                   Play
                 </Link>
-              )}
-              <button className="flex items-center gap-2 bg-gray-500/70 hover:bg-gray-500/50 hover:scale-105 hover:shadow-lg text-white px-6 py-2.5 rounded-md font-bold text-base transition-all duration-300 transform active:scale-95">
+              )} */}
+              {/* <button className="flex items-center gap-2 bg-gray-500/70 hover:bg-gray-500/50 hover:scale-105 hover:shadow-lg text-white px-6 py-2.5 rounded-md font-bold text-base transition-all duration-300 transform active:scale-95">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 My List
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -275,19 +276,11 @@ export default function WatchLandingPage() {
               </div>
             )}
             {movie.downloadUrl && (
-              <div className="relative z-10 flex justify-center mt-8">
-                <a
-                  href={movie.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-lg font-semibold underline text-[var(--netflix-red)] hover:text-white transition-colors"
-                >
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L12 15M12 15L8 11M12 15L16 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    <path d="M3 17L3 19C3 20.1046 3.89543 21 5 21L19 21C20.1046 21 21 20.1046 21 19L21 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Download file
-                </a>
+              <div className="relative z-10 flex flex-col items-center mt-8">
+                <DownloadCTA url={movie.downloadUrl} className="flex justify-center" />
+                <div className="mt-3 text-sm text-[var(--netflix-light-gray)] opacity-75 text-center animate-fade-in animation-delay-500">
+                  🚀 <span className="font-semibold bg-gradient-to-r from-[var(--netflix-red)] to-pink-400 bg-clip-text text-transparent">Premium Quality</span> • Lightning Fast • Secure
+                </div>
               </div>
             )}
           </div>
@@ -407,7 +400,7 @@ export default function WatchLandingPage() {
         )}
 
         {/* About Section */}
-        <div className="space-y-4 pb-12">
+        {/* <div className="space-y-4 pb-12">
           <h2 className="text-2xl font-bold text-white">About {movie.name}</h2>
           <div className="space-y-3 text-sm">
             <div className="flex gap-2">
@@ -438,7 +431,7 @@ export default function WatchLandingPage() {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )

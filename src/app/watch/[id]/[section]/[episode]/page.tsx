@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase'
 import { doc, getDoc, type DocumentData } from 'firebase/firestore'
 import { getEmbedConfig } from '@/lib/providers'
 import NextDynamic from 'next/dynamic'
+import DownloadCTA from '@/components/DownloadCTA'
 
 const SmartVideoPlayer = NextDynamic(() => import('@/components/SmartVideoPlayer'), { ssr: false })
 
@@ -884,21 +885,10 @@ export default function EpisodePlayerPage() {
                 </div>
               </div>
             )}
-            {/* Download: replaced button with a direct link */}
+            {/* Download with 15s reveal and timestamp hint */}
             {movie.downloadUrl && (
               <div className="space-y-2" id="download">
-                <a
-                  href={movie.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-medium underline text-[var(--netflix-red)] hover:text-white transition-colors"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
-                    <path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" />
-                  </svg>
-                  Download file
-                </a>
+                <DownloadCTA url={movie.downloadUrl} variant="link" label="Download file" />
               </div>
             )}
           </div>
