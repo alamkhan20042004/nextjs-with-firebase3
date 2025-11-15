@@ -247,21 +247,33 @@ export default function WatchLandingPage() {
                     src={(function () {
                       const raw = String(movie.trailerUrl)
                       try {
+                        const addAuto = (url: string) => {
+                          try {
+                            const u = new URL(url)
+                            u.searchParams.set('autoplay', '1')
+                            u.searchParams.set('mute', '1')
+                            u.searchParams.set('playsinline', '1')
+                            u.searchParams.set('enablejsapi', '1')
+                            return u.toString()
+                          } catch {
+                            return url
+                          }
+                        }
                         if (raw.startsWith('<')) {
                           const src = (raw.match(/src\s*=\s*"([^"]+)"/i) || raw.match(/src\s*=\s*'([^']+)'/i))?.[1]
-                          if (src) return src
+                          if (src) return addAuto(src)
                         }
                         if (/^[A-Za-z0-9_-]{11}$/.test(raw)) {
-                          return `https://www.youtube.com/embed/${raw}`
+                          return addAuto(`https://www.youtube.com/embed/${raw}`)
                         }
                         if (raw.includes('youtube.com/watch')) {
                           const u = new URL(raw)
                           const v = u.searchParams.get('v')
-                          if (v) return `https://www.youtube.com/embed/${v}`
+                          if (v) return addAuto(`https://www.youtube.com/embed/${v}`)
                         }
                         if (raw.includes('youtu.be/')) {
                           const id = raw.split('youtu.be/')[1]?.split(/[?&#]/)[0]
-                          if (id) return `https://www.youtube.com/embed/${id}`
+                          if (id) return addAuto(`https://www.youtube.com/embed/${id}`)
                         }
                       } catch {}
                       return raw

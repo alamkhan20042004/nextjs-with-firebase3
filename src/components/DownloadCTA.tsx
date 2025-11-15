@@ -64,7 +64,9 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
           <button
             type="button"
             onClick={() => setClickedAt(new Date())}
-            className="inline-flex items-center gap-2 text-sm font-medium underline text-[var(--netflix-red)] hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium underline text-[var(--netflix-red)] hover:text-white transition-colors px-3 py-2 rounded-md min-h-[44px] sm:min-h-[36px]"
+            style={{ touchAction: 'manipulation' }}
+            aria-label={label}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
@@ -73,15 +75,15 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
             {label}
           </button>
         )}
-        {/* {clickedAt && !ready && (
-          <div className="text-xs text-[var(--netflix-light-gray)]">
+        {clickedAt && !ready && (
+          <div className="text-xs text-[var(--netflix-light-gray)]" role="status" aria-live="polite">
             Requested at <span className="text-white font-semibold">{clickedAtText}</span>. Link will appear in <span className="text-white font-mono">{secondsLeft}s</span>.
           </div>
-        )} */}
+        )}
         {ready && (
           <div className="flex items-center flex-wrap gap-2 text-xs">
-            {/* <span className="text-[var(--netflix-light-gray)]">Requested at</span> */}
-            {/* <span className="text-white font-semibold">{clickedAtText}</span> */}
+            <span className="text-[var(--netflix-light-gray)]">Requested at</span>
+            <span className="text-white font-semibold">{clickedAtText}</span>
             <a
               href={url}
               target="_blank"
@@ -95,9 +97,9 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
               onClick={onCopy}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 border border-[var(--netflix-gray)] text-white hover:border-[var(--netflix-red)]/60 transition"
             >
-              {/* {copied ? 'Copied!' : 'Copy URL'} */}
+              {copied ? 'Copied!' : 'Copy URL'}
             </button>
-            {/* <code className="block w-full sm:w-auto truncate px-2 py-1 rounded bg-black/40 border border-[var(--netflix-gray)] text-[10px] text-[var(--netflix-light-gray)]">{url}</code> */}
+            <code className="block w-full sm:w-auto truncate px-2 py-1 rounded bg-black/40 border border-[var(--netflix-gray)] text-[10px] text-[var(--netflix-light-gray)]">{url}</code>
           </div>
         )}
       </div>
@@ -131,12 +133,12 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
       )}
 
       {clickedAt && !ready && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2" role="status" aria-live="polite">
           <div className="relative inline-flex items-center gap-3 px-8 py-4 rounded-xl border-2 border-white/20 bg-black/50 text-white">
             <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4"/><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg>
             <span className="text-sm">Preparing link… <span className="font-mono">{secondsLeft}s</span></span>
           </div>
-          {/* <div className="text-xs text-[var(--netflix-light-gray)]">Requested at <span className="text-white font-semibold">{clickedAtText}</span></div> */}
+          <div className="text-xs text-[var(--netflix-light-gray)]">Requested at <span className="text-white font-semibold">{clickedAtText}</span></div>
         </div>
       )}
 
@@ -152,16 +154,16 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
             Open Download
           </a>
           <div className="flex items-center flex-wrap gap-2 text-xs">
-            {/* <span className="text-[var(--netflix-light-gray)]">Requested at</span> */}
-            {/* <span className="text-white font-semibold">{clickedAtText}</span> */}
+            <span className="text-[var(--netflix-light-gray)]">Requested at</span>
+            <span className="text-white font-semibold">{clickedAtText}</span>
             <button
               type="button"
               onClick={onCopy}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-black/40 border border-[var(--netflix-gray)] text-white hover:border-[var(--netflix-red)]/60 transition"
             >
-              {/* {copied ? 'Copied!' : 'Copy URL'} */}
+              {copied ? 'Copied!' : 'Copy URL'}
             </button>
-            {/* <code className="block w-full sm:w-auto truncate px-2 py-1 rounded bg-black/40 border border-[var(--netflix-gray)] text-[10px] text-[var(--netflix-light-gray)]">{url}</code> */}
+            <code className="block w-full sm:w-auto truncate px-2 py-1 rounded bg-black/40 border border-[var(--netflix-gray)] text-[10px] text-[var(--netflix-light-gray)]">{url}</code>
           </div>
         </div>
       )}
