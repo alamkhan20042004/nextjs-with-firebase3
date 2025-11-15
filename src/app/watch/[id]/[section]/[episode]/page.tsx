@@ -6,6 +6,9 @@ import { useParams, useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, type DocumentData } from 'firebase/firestore'
 import { getEmbedConfig } from '@/lib/providers'
+import NextDynamic from 'next/dynamic'
+
+const SmartVideoPlayer = NextDynamic(() => import('@/components/SmartVideoPlayer'), { ssr: false })
 
 export const dynamic = 'force-dynamic'
 
@@ -132,6 +135,11 @@ export default function EpisodePlayerPage() {
     const url = current?.url || ''
     return getEmbedConfig(url)
   }, [current])
+
+  const isDirectMedia = useMemo(() => {
+    const u = embed.src || ''
+    return /\.(m3u8|mp4|webm|ogg)(\?|$)/i.test(u)
+  }, [embed])
 
   // Reset player loaded state when the video URL changes
   useEffect(() => {
@@ -353,29 +361,87 @@ export default function EpisodePlayerPage() {
           </Link>
         </div>
 
-        {/* Video player container with enhanced Netflix styling */}
-        <div 
-          ref={containerRef} 
-          className="relative aspect-video w-full rounded-xl overflow-hidden border border-[var(--netflix-red)]/30 shadow-2xl bg-black transform transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(229,9,20,0.3)] animate-fade-in-up animation-delay-500 group"
-          onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFullscreen(); }}
-          onClick={(e) => {
-            // In fullscreen, toggle visibility of our controls on single click/tap
-            if (!isFullscreen) return
-            e.preventDefault();
-            e.stopPropagation();
-            const next = !showControls
-            setShowControls(next)
-            if (controlsTimerRef.current) {
-              clearTimeout(controlsTimerRef.current)
-              controlsTimerRef.current = null
-            }
-            if (next) {
-              controlsTimerRef.current = window.setTimeout(() => {
-                setShowControls(false)
-              }, 2500)
-            }
-          }}
-        >
+        {/* Video player */}
+        {isDirectMedia ? (
+          <SmartVideoPlayer src={embed.src} poster={movie.pic} className="relative aspect-video w-full rounded-xl overflow-hidden bg-black animate-fade-in-up animation-delay-500" />
+        ) : true ? (
+          // Mobile: simple, no overlays/features to avoid audio/touch issues
+          <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black animate-fade-in-up animation-delay-500">
+            <iframe
+              key={`${embed.src}:${reloadNonce}`}
+              src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}mbx=${reloadNonce}`}
+              className="w-full h-full"
+              allow={embed.allow}
+              sandbox={embed.sandbox}
+              referrerPolicy={(embed as any).referrerPolicy}
+              allowFullScreen
+              onLoad={handleIframeLoad}
+            />
+            {/* Minimal Odysee click-blockers to disable outbound links without affecting center playback */}
+            {hideBranding && isOdysee && (
+              <>
+                {/* Top bar (channel/title) */}
+                <div
+                  aria-hidden="true"
+                  className="absolute left-0 right-0 top-0 pointer-events-auto"
+                  style={{
+                    height: 56,
+                    background: 'rgba(0,0,0,0.98)'
+                  }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                />
+                {/* Top-right small logo area */}
+                <div
+                  aria-hidden="true"
+                  className="absolute pointer-events-auto"
+                  style={{
+                    top: 0,
+                    right: 0,
+                    width: 96,
+                    height: 56,
+                    background: 'rgba(0,0,0,1)'
+                  }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                />
+                {/* Bottom-right tiny watermark area */}
+                <div
+                  aria-hidden="true"
+                  className="absolute pointer-events-auto"
+                  style={{
+                    right: 0,
+                    bottom: 0,
+                    width: 84,
+                    height: 42,
+                    background: 'transparent'
+                  }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                />
+              </>
+            )}
+          </div>
+        ) : (
+          <div 
+            ref={containerRef} 
+            className="relative aspect-video w-full rounded-xl overflow-hidden border border-[var(--netflix-red)]/30 shadow-2xl bg-black transform transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(229,9,20,0.3)] animate-fade-in-up animation-delay-500 group"
+            onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFullscreen(); }}
+            onClick={(e) => {
+              // In fullscreen, toggle visibility of our controls on single click/tap
+              if (!isFullscreen) return
+              e.preventDefault();
+              e.stopPropagation();
+              const next = !showControls
+              setShowControls(next)
+              if (controlsTimerRef.current) {
+                clearTimeout(controlsTimerRef.current)
+                controlsTimerRef.current = null
+              }
+              if (next) {
+                controlsTimerRef.current = window.setTimeout(() => {
+                  setShowControls(false)
+                }, 2500)
+              }
+            }}
+          >
           {/* Glowing border effect */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           
@@ -406,13 +472,20 @@ export default function EpisodePlayerPage() {
 
           {/* Player loading overlay */}
           {!playerLoaded && !playerError && (
-            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black">
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/75 pointer-events-none">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div className="w-14 h-14 border-4 border-[var(--netflix-red)]/30 border-t-[var(--netflix-red)] rounded-full animate-spin"></div>
-                  <div className="absolute inset-3 w-8 h-8 border-4 border-transparent border-b-white rounded-full animate-spin animation-direction-reverse"></div>
+                  <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  <div className="absolute inset-2 w-8 h-8 border-4 border-transparent border-b-white rounded-full animate-spin" style={{ animationDirection: 'reverse' }}></div>
                 </div>
-                <div className="text-white text-sm">Loading player…</div>
+                <div className="w-44 h-1.5 bg-white/10 rounded overflow-hidden">
+                  <div className="h-full w-1/3 bg-white/70 animate-[progress_1.2s_linear_infinite]"></div>
+                </div>
+                <div className="flex gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
               </div>
             </div>
           )}
@@ -543,7 +616,7 @@ export default function EpisodePlayerPage() {
             />
           )}
 
-          {/* Generic fullscreen top-right overlay to hide provider logos (desktop + mobile) */}
+          {/* Generic fullscreen top-right overlay to hide provider logos (desktop only in advanced mode) */}
           {isFullscreen && !isOdysee && (
             <div
               aria-hidden="true"
@@ -552,7 +625,7 @@ export default function EpisodePlayerPage() {
                 top: 0,
                 right: 0,
                 width: smallScreen ? '90px' : '120px',
-                height: smallScreen ? '5px' : '70px',
+                height: smallScreen ? '54px' : '70px',
                 paddingTop: 'env(safe-area-inset-top, 0px)',
                 paddingRight: 'env(safe-area-inset-right, 0px)',
                 background: 'rgba(0,0,0,1)'
@@ -614,7 +687,8 @@ export default function EpisodePlayerPage() {
 
 
 
-        </div>
+          </div>
+        )}
 
         {/* Enhanced player info with animations */}
         <div className="flex items-center justify-center animate-fade-in-up animation-delay-800">
