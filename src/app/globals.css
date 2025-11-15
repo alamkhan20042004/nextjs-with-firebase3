@@ -74,6 +74,12 @@ button, a {
   100% { transform: translateX(100%); }
 }
 
+/* Progress bar sweep for loaders */
+@keyframes progress {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(300%); }
+}
+
 @keyframes gradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -175,3 +181,5 @@ button, a {
 .border-netflix-red {
   border-color: var(--netflix-red);
 }
+
+/* Removed smart player control-hiding rules per user request */

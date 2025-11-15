@@ -20,6 +20,12 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [retryNonce, setRetryNonce] = useState(0)
+  const saveTimerRef = useRef<number | null>(null)
+  const [bufferedRanges, setBufferedRanges] = useState<Array<{ start: number, end: number }>>([])
+  const lastTimeRef = useRef<number>(0)
+  const SKIP_INTERVAL = 10 // seconds to skip with arrow keys
+
+  const posKey = useMemo(() => `sv:pos:${encodeURIComponent(src)}`, [src])
 
   const kind: 'm3u8' | 'mp4' | 'other' = useMemo(() => {
     if (isM3U8(src)) return 'm3u8'
@@ -45,6 +51,15 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
     }
     const handleWaiting = () => {
       if (destroyed) return
+      const vEl = videoRef.current
+      if (vEl) {
+        const inBuffered = isTimeBuffered(vEl.currentTime, bufferedRanges)
+        if (inBuffered) {
+          // Suppress loading overlay for backward seek into already buffered data
+          setLoading(false)
+          return
+        }
+      }
       setLoading(true)
     }
     const handlePlaying = () => {
@@ -63,11 +78,63 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
     v.addEventListener('waiting', handleWaiting)
     v.addEventListener('error', handleError)
 
+    const handleLoadedMetadata = () => {
+      try {
+        const raw = localStorage.getItem(posKey)
+        const last = raw ? parseFloat(raw) : 0
+        if (Number.isFinite(last) && last > 5 && v.duration && last < v.duration - 2) {
+          v.currentTime = last
+        }
+      } catch {}
+    }
+    const handleTimeUpdate = () => {
+      try {
+        if (saveTimerRef.current) return
+        saveTimerRef.current = window.setTimeout(() => {
+          saveTimerRef.current = null
+        }, 2000)
+        if (!isNaN(v.currentTime) && v.currentTime > 0) {
+          localStorage.setItem(posKey, String(Math.floor(v.currentTime)))
+        }
+      } catch {}
+      // Refresh buffered ranges snapshot
+      setBufferedRanges(extractBuffered(v))
+      lastTimeRef.current = v.currentTime
+    }
+    const handleEnded = () => {
+      try { localStorage.removeItem(posKey) } catch {}
+    }
+    const handleProgress = () => {
+      setBufferedRanges(extractBuffered(v))
+    }
+    const handleSeeking = () => {
+      const target = v.currentTime
+      const prev = lastTimeRef.current
+      // Backward seek detection
+      if (target < prev) {
+        if (isTimeBuffered(target, bufferedRanges)) {
+          // Already have data; keep loading false
+          setLoading(false)
+        }
+      }
+    }
+
+    v.addEventListener('loadedmetadata', handleLoadedMetadata)
+    v.addEventListener('timeupdate', handleTimeUpdate)
+    v.addEventListener('ended', handleEnded)
+    v.addEventListener('progress', handleProgress)
+    v.addEventListener('seeking', handleSeeking)
+
     return () => {
       v.removeEventListener('canplay', handleCanPlay)
       v.removeEventListener('playing', handlePlaying)
       v.removeEventListener('waiting', handleWaiting)
       v.removeEventListener('error', handleError)
+      v.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      v.removeEventListener('timeupdate', handleTimeUpdate)
+      v.removeEventListener('ended', handleEnded)
+      v.removeEventListener('progress', handleProgress)
+      v.removeEventListener('seeking', handleSeeking)
     }
   }, [onReady, onError, retryNonce])
 
@@ -96,11 +163,17 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
               const hls = new Hls({
                 enableWorker: true,
                 autoStartLoad: true,
-                backBufferLength: 30,
-                maxBufferLength: 60,
-                maxBufferSize: 60 * 1000 * 1000,
+                // Keep a larger back buffer so short backward seeks are instant.
+                backBufferLength: 120,
+                // Increase forward buffer for smoother scrubbing.
+                maxBufferLength: 180,
+                maxBufferSize: 120 * 1000 * 1000,
                 fragLoadingTimeOut: 20000,
                 manifestLoadingTimeOut: 20000,
+                // Favor smoother playback on slow networks
+                capLevelToPlayerSize: true,
+                lowLatencyMode: false,
+                abrEwmaDefaultEstimate: 300000,
               })
               hlsRef.current = hls
               hls.attachMedia(v)
@@ -160,6 +233,29 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
     }
   }, [src, kind, onError, retryNonce])
 
+  // Global arrow key seeking (avoid when user typing in an editable field)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const v = videoRef.current
+      if (!v) return
+      const active = document.activeElement as HTMLElement | null
+      if (active) {
+        const tag = active.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return
+      }
+      if (e.key === 'ArrowLeft') {
+        v.currentTime = Math.max(0, v.currentTime - SKIP_INTERVAL)
+        e.preventDefault()
+      } else if (e.key === 'ArrowRight') {
+        const dur = v.duration || (v.currentTime + SKIP_INTERVAL)
+        v.currentTime = Math.min(dur, v.currentTime + SKIP_INTERVAL)
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [SKIP_INTERVAL])
+
   return (
     <div className={className || 'relative w-full h-full bg-black'}>
       <video
@@ -189,6 +285,27 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
               <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
               <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
+            {/* Buffered ranges visualization (simple) */}
+            <div className="w-40 h-1 bg-white/20 rounded mt-2 flex">
+              {bufferedRanges.map((r, i) => (
+                <div
+                  key={i}
+                  className="bg-white/60 h-full"
+                  style={{
+                    flexBasis: `${((r.end - r.start) / (videoRef.current?.duration || 1)) * 100}%`,
+                    marginLeft: `${(r.start / (videoRef.current?.duration || 1)) * 100}%`,
+                  }}
+                />
+              ))}
+              <div
+                className="h-full bg-red-500/70"
+                style={{
+                  position: 'absolute',
+                  left: `${(videoRef.current?.currentTime || 0) / (videoRef.current?.duration || 1) * 100}%`,
+                  width: '2px'
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -207,6 +324,24 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
           </div>
         </div>
       )}
+
+      {/* No custom overlays or fullscreen button */}
     </div>
   )
+}
+
+function extractBuffered(v: HTMLVideoElement): Array<{ start: number, end: number }> {
+  const out: Array<{ start: number, end: number }> = []
+  const b = v.buffered
+  for (let i = 0; i < b.length; i++) {
+    out.push({ start: b.start(i), end: b.end(i) })
+  }
+  return out
+}
+
+function isTimeBuffered(time: number, ranges: Array<{ start: number, end: number }>): boolean {
+  for (const r of ranges) {
+    if (time >= r.start && time <= r.end) return true
+  }
+  return false
 }

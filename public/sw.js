@@ -1,5 +1,6 @@
 /* Minimal service worker to improve app shell performance.
- * Note: This does NOT cache cross-origin iframe media (e.g., Odysee/Rumble videos).
+ * Adds light same-origin media caching for slow networks.
+ * Note: Service workers cannot cache cross-origin media by default.
  */
 
 const CACHE_NAME = 'moviebox-shell-v1';
@@ -8,6 +9,9 @@ const APP_SHELL = [
   '/favicon.ico',
   '/manifest.webmanifest',
 ];
+
+// Lightweight cache for same-origin media (HLS manifests/segments and MP4)
+const MEDIA_CACHE = 'moviebox-media-v1';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -54,6 +58,48 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => cached);
       return cached || fetchPromise;
+    })()
+  );
+});
+
+// Media-aware handler: same-origin only
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
+  const isManifest = /\.m3u8(\?|$)/i.test(url.pathname);
+  const isMedia = /(\.m3u8|\.mp4|\.webm|\.ogg|\.ts)(\?|$)/i.test(url.pathname);
+  if (!isMedia) return;
+
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(MEDIA_CACHE);
+      if (isManifest) {
+        // Network-first for manifests
+        try {
+          const fresh = await fetch(req);
+          if (fresh && fresh.status === 200) {
+            cache.put(req, fresh.clone());
+          }
+          return fresh;
+        } catch (e) {
+          const cached = await cache.match(req);
+          if (cached) return cached;
+          throw e;
+        }
+      } else {
+        // Stale-while-revalidate for segments/mp4
+        const cached = await cache.match(req);
+        const networkPromise = fetch(req)
+          .then((res) => {
+            if (res && res.status === 200) cache.put(req, res.clone());
+            return res;
+          })
+          .catch(() => cached);
+        return cached || networkPromise;
+      }
     })()
   );
 });
