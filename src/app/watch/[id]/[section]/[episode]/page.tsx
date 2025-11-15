@@ -242,19 +242,23 @@ export default function EpisodePlayerPage() {
 
   // Calculate overlay dimensions - SIMPLIFIED and more reliable
   const getOverlayStyle = () => {
+    // Base (desktop) size
     let width = 130
     let height = 30
+    let position: { left?: string; right?: string } = { right: '0px' }
 
+    // Mobile / short viewport: make shield smaller & move to bottom-left for less intrusion
     if (smallScreen || shortViewport) {
-      width = isLandscape ? 145 : 115
-      height = 30
+      width = isLandscape ? 100 : 86
+      height = 26
+      position = { left: '0px' }
     }
 
     return {
       width: `${width}px`,
       height: `${height}px`,
-      right: '0px',
       bottom: '0px',
+      ...position,
       background: 'rgba(0,0,0,0.95)',
       zIndex: 30,
       cursor: 'default',
@@ -509,13 +513,15 @@ export default function EpisodePlayerPage() {
                   transition: 'opacity 250ms'
                 }}
               />
-              {/* Bottom-right small shield for watermark/outbound area */}
+              {/* Bottom small shield for watermark/outbound area (moved left & reduced on mobile) */}
               <div
                 aria-hidden="true"
-                className="absolute bottom-0 right-0 z-30 bg-transparent pointer-events-auto"
+                className="absolute bottom-0 z-30 bg-transparent pointer-events-auto"
                 style={{
-                  width: smallScreen ? '70px' : '90px',
-                  height: smallScreen ? '56px' : '72px'
+                  left: smallScreen ? '0px' : 'auto',
+                  right: smallScreen ? 'auto' : '0px',
+                  width: smallScreen ? '58px' : '84px',
+                  height: smallScreen ? '42px' : '60px'
                 }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               />
@@ -526,10 +532,12 @@ export default function EpisodePlayerPage() {
           {hideBranding && !isRumble && embed.provider !== 'odysee' && (
             <div
               aria-hidden="true"
-              className="absolute bottom-0 right-0 z-30 bg-transparent pointer-events-auto"
+              className="absolute bottom-0 z-30 bg-transparent pointer-events-auto"
               style={{
-                width: smallScreen ? '70px' : '90px',
-                height: smallScreen ? '56px' : '72px'
+                left: smallScreen ? '0px' : 'auto',
+                right: smallScreen ? 'auto' : '0px',
+                width: smallScreen ? '58px' : '84px',
+                height: smallScreen ? '42px' : '60px'
               }}
               onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
             />
