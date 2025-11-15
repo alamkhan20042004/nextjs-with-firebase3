@@ -24,6 +24,8 @@ type Movie = {
   heroCTAUrl?: string
   heroImageUrl?: string
   genres?: string[]
+  trailerUrl?: string | null
+  downloadUrl?: string | null
 }
 
 export default function MovieDetailPage() {
@@ -222,6 +224,54 @@ export default function MovieDetailPage() {
                         <a href={l} target="_blank" rel="noreferrer" className="text-[var(--netflix-red)] hover:underline">{l}</a>
                       </li>
                     ))}
+                    {(movie.trailerUrl || movie.downloadUrl) && (
+                      <div className="space-y-4">
+                        {movie.trailerUrl && (
+                          <div>
+                            <h2 className="text-lg font-semibold text-white mb-2">Trailer</h2>
+                            <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                              <iframe
+                                className="absolute inset-0 w-full h-full rounded-lg border border-[var(--netflix-gray)]"
+                                src={(function(){
+                                  const url = String(movie.trailerUrl)
+                                  try {
+                                    if (url.includes('youtube.com/watch')) {
+                                      const u = new URL(url)
+                                      const v = u.searchParams.get('v')
+                                      if (v) return `https://www.youtube.com/embed/${v}`
+                                    }
+                                    if (url.includes('youtu.be/')) {
+                                      const id = url.split('youtu.be/')[1]?.split(/[?&#]/)[0]
+                                      if (id) return `https://www.youtube.com/embed/${id}`
+                                    }
+                                  } catch {}
+                                  return url
+                                })()}
+                                title="Trailer"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {movie.downloadUrl && (
+                          <div>
+                            <a
+                              href={movie.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 py-1.5 text-xs sm:text-sm font-medium transition-all duration-300"
+                            >
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
+                                <path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" />
+                              </svg>
+                              Download
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </ul>
                 )}
               </div>

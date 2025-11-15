@@ -24,6 +24,8 @@ type Movie = {
   heroDescription?: string
   heroCTALabel?: string
   heroCTAUrl?: string
+  trailerUrl?: string | null
+  downloadUrl?: string | null
 }
 
 export default function UserPage() {
@@ -376,17 +378,15 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                   {/* Glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-xl"></div>
                   
-                  <img
-                    src={m.pic}
-                    alt={`${m.name} poster`}
-                    className="w-full h-full object-cover transition-all duration-500 group-hover/card:brightness-110 group-hover/card:contrast-110"
-                    onError={(e) => {
-                      const el = e.currentTarget as HTMLImageElement
-                      el.style.visibility = 'hidden'
-                    }}
-                  />
-                  
-                  {/* Enhanced badges overlay */}
+              <img
+                src={movie.pic}
+                alt={movie.name}
+                className="w-full aspect-[2/3] object-cover rounded-lg transition-all duration-500 group-hover:brightness-110 group-hover:scale-105 transform"
+                onError={(e) => {
+                  const el = e.currentTarget as HTMLImageElement
+                  el.style.display = 'none'
+                }}
+              />                  {/* Enhanced badges overlay */}
                   {idx < 3 && (
                     <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
                       <span className="bg-gradient-to-r from-[var(--netflix-red)] to-[#b91c1c] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">

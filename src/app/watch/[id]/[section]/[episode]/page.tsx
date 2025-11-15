@@ -20,6 +20,8 @@ type Movie = {
   type?: 'movie' | 'series'
   sections: Section[]
   genres?: string[]
+  trailerUrl?: string | null
+  downloadUrl?: string | null
 }
 
 export default function EpisodePlayerPage() {
@@ -46,8 +48,15 @@ export default function EpisodePlayerPage() {
   const loadTimeoutRef = useRef<number | null>(null)
   const [showControls, setShowControls] = useState(false)
   const controlsTimerRef = useRef<number | null>(null)
+  const [downloadPending, setDownloadPending] = useState(false)
+  const [downloadCountdown, setDownloadCountdown] = useState(10)
+  const downloadTimerRef = useRef<number | null>(null)
   const headerHeight = (smallScreen || shortViewport) ? 56 : 68
   const [isCoarse, setIsCoarse] = useState(false)
+  // Trailer load diagnostics
+  const [trailerLoaded, setTrailerLoaded] = useState(false)
+  const [trailerFailed, setTrailerFailed] = useState(false)
+  const trailerIframeRef = useRef<HTMLIFrameElement | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -122,6 +131,38 @@ export default function EpisodePlayerPage() {
     } catch {}
   }, [])
 
+  // Cleanup any active download countdown on unmount
+  useEffect(() => {
+    return () => {
+      if (downloadTimerRef.current) {
+        window.clearInterval(downloadTimerRef.current)
+        downloadTimerRef.current = null
+      }
+    }
+  }, [])
+
+  const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!movie?.downloadUrl) return
+    e.preventDefault()
+    if (downloadPending) return
+    setDownloadPending(true)
+    setDownloadCountdown(10)
+    const id = window.setInterval(() => {
+      setDownloadCountdown((prev) => {
+        if (prev <= 1) {
+          if (downloadTimerRef.current) {
+            window.clearInterval(downloadTimerRef.current)
+            downloadTimerRef.current = null
+          }
+          window.location.href = movie.downloadUrl!
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    downloadTimerRef.current = id
+  }
+
   const isRumble = useMemo(() => {
     const url = current?.url || ''
     return /rumble\.com/i.test(url)
@@ -135,6 +176,16 @@ export default function EpisodePlayerPage() {
     const url = current?.url || ''
     return getEmbedConfig(url)
   }, [current])
+
+  // Build iframe src with autoplay parameter when applicable
+  const iframeSrc = useMemo(() => {
+    const base = embed.src || ''
+    if (!base) return base
+    const sep = base.includes('?') ? '&' : '?'
+    const withAutoplay = `${base}${sep}autoplay=1`
+    const sep2 = withAutoplay.includes('?') ? '&' : '?'
+    return `${withAutoplay}${sep2}mbx=${reloadNonce}`
+  }, [embed.src, reloadNonce])
 
   const isDirectMedia = useMemo(() => {
     const u = embed.src || ''
@@ -218,6 +269,29 @@ export default function EpisodePlayerPage() {
       // ignore
     }
   }
+
+  // Nudge YouTube player via postMessage to ensure autoplay even off-screen
+  useEffect(() => {
+    const iframe = trailerIframeRef.current
+    if (!iframe) return
+    try {
+      // Mute first, then play
+      iframe.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'mute', args: [] }),
+        '*'
+      )
+      // Small delay to ensure player ready
+      const t = window.setTimeout(() => {
+        try {
+          iframe.contentWindow?.postMessage(
+            JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
+            '*'
+          )
+        } catch {}
+      }, 150)
+      return () => window.clearTimeout(t)
+    } catch {}
+  }, [trailerLoaded, reloadNonce])
 
   // Safety: if user exits fullscreen via system gesture, try to unlock orientation
   useEffect(() => {
@@ -369,7 +443,7 @@ export default function EpisodePlayerPage() {
           <div ref={containerRef} className="relative aspect-video w-full rounded-xl overflow-hidden bg-black animate-fade-in-up animation-delay-500">
             <iframe
               key={`${embed.src}:${reloadNonce}`}
-              src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}mbx=${reloadNonce}`}
+              src={iframeSrc}
               className="w-full h-full"
               allow={embed.allow}
               sandbox={embed.sandbox}
@@ -525,7 +599,7 @@ export default function EpisodePlayerPage() {
                 <button
                   type="button"
                   onClick={retryLoad}
-                  className="px-4 py-2 rounded-md bg-[var(--netflix-red)] text-white text-sm hover:brightness-110"
+                  className="px-4 py-2 rounded-md bg-[var(--netflix-red)] text-white text-sm hover:brightness-110 hover:scale-105 hover:shadow-lg transition-all duration-300 transform active:scale-95"
                 >
                   Retry
                 </button>
@@ -742,6 +816,138 @@ export default function EpisodePlayerPage() {
             </svg>
           </button>
         </div>
+
+        {/* Trailer & Download (episode context) */}
+        {movie && (movie.trailerUrl || movie.downloadUrl) && (
+          <div className="mt-10 mb-16 max-w-4xl mx-auto w-full px-4 space-y-8 animate-fade-in-up animation-delay-1200">
+            {/* Trailer */}
+            {movie.trailerUrl && (
+              <div className="space-y-4" id="trailer">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[var(--netflix-red)]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                    Trailer
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try { document.getElementById('trailer')?.scrollIntoView({ behavior: 'smooth' }) } catch {}
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-md bg-black/40 border border-[var(--netflix-gray)] text-white hover:border-[var(--netflix-red)]/60 hover:scale-105 hover:shadow-md transition-all duration-300 transform active:scale-95"
+                  >Jump</button>
+                </div>
+                <div className="relative w-full rounded-lg overflow-hidden border border-[var(--netflix-gray)] shadow-lg bg-black" style={{ paddingTop: '56.25%' }}>
+                  {!trailerLoaded && !trailerFailed && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                        <p className="text-xs text-white/70">Loading trailer…</p>
+                      </div>
+                    </div>
+                  )}
+                  {trailerFailed && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/85 text-center p-4">
+                      <p className="text-sm text-white">Trailer failed to load or is blocked.</p>
+                      <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline text-[var(--netflix-red)] hover:text-white">Open on YouTube</a>
+                    </div>
+                  )}
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    style={{ pointerEvents: 'auto' }}
+                    src={(function(){
+                      const raw = String(movie.trailerUrl)
+                      try {
+                        // Force YouTube embed with autoplay, muted, and playsinline to satisfy browser policies
+                        const addAuto = (url: string) => {
+                          const u = new URL(url)
+                          u.searchParams.set('autoplay', '1')
+                          u.searchParams.set('mute', '1')
+                          u.searchParams.set('playsinline', '1')
+                          u.searchParams.set('enablejsapi', '1')
+                          return u.toString()
+                        }
+                        if (raw.includes('youtube.com/watch')) {
+                          const u = new URL(raw)
+                          const v = u.searchParams.get('v')
+                          if (v) return addAuto(`https://www.youtube.com/embed/${v}`)
+                        }
+                        if (raw.includes('youtu.be/')) {
+                          const id = raw.split('youtu.be/')[1]?.split(/[?&#]/)[0]
+                          if (id) return addAuto(`https://www.youtube.com/embed/${id}`)
+                        }
+                        if (raw.includes('/embed/')) {
+                          return addAuto(raw)
+                        }
+                      } catch {}
+                      return raw
+                    })()}
+                    title="Trailer"
+                    frameBorder={0}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    ref={trailerIframeRef}
+                    onLoad={() => setTrailerLoaded(true)}
+                    onError={() => setTrailerFailed(true)}
+                  />
+                  {/* Fallback if iframe blocked */}
+                  <noscript>
+                    <div className="absolute inset-0 flex items-center justify-center text-white text-sm bg-black">Enable JavaScript to view trailer.</div>
+                  </noscript>
+                  {trailerFailed && (function(){
+                    try {
+                      const raw = String(movie.trailerUrl)
+                      let id = ''
+                      if (raw.includes('watch')) { const u = new URL(raw); id = u.searchParams.get('v') || '' }
+                      else if (raw.includes('youtu.be/')) { id = raw.split('youtu.be/')[1]?.split(/[?&#]/)[0] || '' }
+                      else if (raw.includes('/embed/')) { id = raw.split('/embed/')[1]?.split(/[?&#]/)[0] || '' }
+                      if (id) return <img src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`} alt="Trailer thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                    } catch {}
+                    return null
+                  })()}
+                </div>
+                <div className="text-xs text-[var(--netflix-light-gray)]">
+                  If the trailer does not play, your network or browser may be blocking YouTube embeds. Try opening directly.
+                  <a
+                    href={movie.trailerUrl || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 underline text-[var(--netflix-red)] hover:text-white"
+                  >Open on YouTube</a>
+                </div>
+              </div>
+            )}
+            {/* Download */}
+            {movie.downloadUrl && (
+              <div className="space-y-3" id="download">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <svg className="w-5 h-5 text-[var(--netflix-red)]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
+                    <path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" />
+                  </svg>
+                  Download
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleDownloadClick}
+                  aria-disabled={downloadPending}
+                  className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-300 transform active:scale-95 ${downloadPending ? 'cursor-not-allowed bg-[var(--netflix-gray)] text-white opacity-85' : 'bg-[var(--netflix-red)] hover:bg-[#F40612] hover:scale-105 hover:shadow-xl hover:shadow-red-500/30 text-white'}`}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
+                    <path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" />
+                  </svg>
+                  {downloadPending ? `Starting in ${downloadCountdown}s…` : 'Go To File'}
+                </button>
+                {!downloadPending ? (
+                  <p className="text-xs text-[var(--netflix-light-gray)]">You will be redirected to the file location.</p>
+                ) : (
+                  <p className="text-xs text-[var(--netflix-light-gray)]" aria-live="polite">Preparing your download… redirecting in {downloadCountdown}s</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>

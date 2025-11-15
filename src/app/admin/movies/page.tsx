@@ -19,6 +19,8 @@ type Movie = {
   createdAt?: Timestamp
   type?: 'movie' | 'series'
   genres?: string[]
+  trailerUrl?: string | null
+  downloadUrl?: string | null
 }
 
 export default function MoviesListPage() {
@@ -193,7 +195,7 @@ export default function MoviesListPage() {
                         <td className="py-3 px-3">
                           <Link
                             href={`/admin/movies/${m.id}`}
-                            className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 py-1.5 text-xs font-medium transition-all duration-300 inline-block"
+                            className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] hover:scale-105 hover:shadow-lg hover:shadow-red-500/30 text-white px-3 py-1.5 text-xs font-medium transition-all duration-300 transform active:scale-95 inline-block"
                           >
                             Show
                           </Link>

@@ -26,6 +26,8 @@ type Movie = {
   heroCTAUrl?: string
   heroImageUrl?: string
   genres?: string[]
+  trailerUrl?: string | null
+  downloadUrl?: string | null
 }
 
 const AVAILABLE_GENRES = [
@@ -73,9 +75,48 @@ export default function EditMoviePage() {
   const [heroCTAUrl, setHeroCTAUrl] = useState('')
   const [heroImageUrl, setHeroImageUrl] = useState('')
   const [genres, setGenres] = useState<string[]>([])
+  const [trailerUrl, setTrailerUrl] = useState('')
+  const [downloadUrl, setDownloadUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Input sanitizers / normalizers (same as create)
+  function extractHrefFromAnchor(input: string): string | null {
+    try {
+      const m = input.match(/href\s*=\s*"([^"]+)"/i) || input.match(/href\s*=\s*'([^']+)'/i)
+      if (m && m[1]) return m[1]
+    } catch {}
+    return null
+  }
+  function normalizeDownloadInput(input: string): string {
+    const raw = input.trim()
+    if (!raw) return ''
+    if (raw.startsWith('<')) {
+      const href = extractHrefFromAnchor(raw)
+      return href ? href.trim() : ''
+    }
+    return raw
+  }
+  function extractYouTubeId(input: string): string | null {
+    const raw = input.trim()
+    if (!raw) return null
+    if (raw.startsWith('<')) {
+      const src = (raw.match(/src\s*=\s*"([^"]+)"/i) || raw.match(/src\s*=\s*'([^']+)'/i))?.[1]
+      if (src) return extractYouTubeId(src)
+    }
+    if (raw.includes('youtu.be/')) return raw.split('youtu.be/')[1]?.split(/[?&#]/)[0] || null
+    if (raw.includes('youtube.com/watch')) {
+      try { const u = new URL(raw); return u.searchParams.get('v') } catch { return null }
+    }
+    if (raw.includes('youtube.com/embed/')) return raw.split('/embed/')[1]?.split(/[?&#]/)[0] || null
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw
+    return null
+  }
+  function normalizeYouTubeInput(input: string): string {
+    const id = extractYouTubeId(input)
+    return id ? `https://www.youtube.com/watch?v=${id}` : ''
+  }
 
   useEffect(() => {
     if (!auth) {
@@ -119,6 +160,8 @@ export default function EditMoviePage() {
     setHeroCTAUrl(data.heroCTAUrl || '')
     setHeroImageUrl(data.heroImageUrl || '')
     setGenres(data.genres || [])
+    setTrailerUrl((data as any).trailerUrl || '')
+    setDownloadUrl((data as any).downloadUrl || '')
     } catch (e: any) {
       setMessage({ type: 'error', text: e?.message || 'Failed to load movie.' })
     } finally {
@@ -149,12 +192,19 @@ export default function EditMoviePage() {
     const linksArray = nonEmptyLinks
     if (!name.trim()) return setMessage({ type: 'error', text: 'Name is required.' })
     if (!pic.trim()) return setMessage({ type: 'error', text: 'Pic URL is required.' })
-    if (linksArray.length === 0) return setMessage({ type: 'error', text: 'Please provide at least one video link.' })
-    const totalRequested = sectionsCounts.reduce((a, b) => a + (Number.isFinite(b.count) ? b.count : 0), 0)
-    if (totalRequested !== linksArray.length) {
-      return setMessage({ type: 'error', text: `Links count (${linksArray.length}) must equal the total across sections (${totalRequested}).` })
+    // Allow zero links/sections. If links exist but no sections are defined, auto-group into a single default section.
+    let sections: Section[] = []
+    if (linksArray.length > 0) {
+      if (sectionsCounts.length === 0) {
+        sections = [{ name: 'Section 1', links: linksArray }]
+      } else {
+        const totalRequested = sectionsCounts.reduce((a, b) => a + (Number.isFinite(b.count) ? b.count : 0), 0)
+        if (totalRequested !== linksArray.length) {
+          return setMessage({ type: 'error', text: `Links count (${linksArray.length}) must equal the total across sections (${totalRequested}).` })
+        }
+        sections = sliceLinksBySections(sectionsCounts, linksArray)
+      }
     }
-    const sections = sliceLinksBySections(sectionsCounts, linksArray)
     setSaving(true)
     try {
       const ref = doc(db, 'movies', id)
@@ -173,6 +223,10 @@ export default function EditMoviePage() {
       if (heroCTALabel.trim()) base.heroCTALabel = heroCTALabel.trim(); else base.heroCTALabel = null
       if (heroCTAUrl.trim()) base.heroCTAUrl = heroCTAUrl.trim(); else base.heroCTAUrl = null
       if (heroImageUrl.trim()) base.heroImageUrl = heroImageUrl.trim(); else base.heroImageUrl = null
+      const normalizedTrailer = normalizeYouTubeInput(trailerUrl)
+      const normalizedDownload = normalizeDownloadInput(downloadUrl)
+      base.trailerUrl = normalizedTrailer || null
+      base.downloadUrl = normalizedDownload || null
       base.genres = genres.length > 0 ? genres : []
       await updateDoc(ref, base)
       setMessage({ type: 'success', text: 'Movie updated successfully.' })
@@ -379,18 +433,37 @@ export default function EditMoviePage() {
                 </p>
               )}
             </div>
+            {/* Trailer & Download */}
+            <div className="rounded-md border border-[var(--netflix-gray)] bg-black/40 p-3">
+              <h3 className="text-sm font-semibold text-white mb-3">Trailer & Download</h3>
+              <div className="flex flex-col gap-2">
+                <input
+                  value={trailerUrl}
+                  onChange={(e) => setTrailerUrl(e.target.value)}
+                  placeholder="YouTube watch or embed URL (optional)"
+                  className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
+                />
+                <input
+                  value={downloadUrl}
+                  onChange={(e) => setDownloadUrl(e.target.value)}
+                  placeholder="Direct download URL (optional)"
+                  className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Sections (name + count)</label>
+              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Sections (optional; name + count)</label>
               <button
-                className="rounded-md border border-[var(--netflix-gray)] px-2 py-1 text-xs text-white hover:bg-[var(--netflix-gray)] transition-all duration-300"
+                className="rounded-md border border-[var(--netflix-gray)] px-2 py-1 text-xs text-white hover:bg-[var(--netflix-gray)] hover:scale-105 hover:shadow-md transition-all duration-300 transform active:scale-95"
                 onClick={() => setSectionsCounts((s) => [...s, { name: `Section ${s.length + 1}`, count: 0 }])}
               >
                 + Add section
               </button>
             </div>
+            <p className="text-xs text-[var(--netflix-light-gray)] mb-2">Tip: Leave sections empty and all video links will be grouped into one default section automatically.</p>
             <div className="space-y-2">
               {sectionsCounts.map((s, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-2 items-center">
@@ -428,7 +501,7 @@ export default function EditMoviePage() {
 
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Video links (individual fields, up to 1000)</label>
+              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Video links (optional, up to 1000)</label>
               <div className="flex gap-2">
                 <button
                   className="rounded-md border border-[var(--netflix-gray)] px-2 py-1 text-xs text-white hover:bg-[var(--netflix-gray)] transition-all duration-300"
@@ -452,6 +525,7 @@ export default function EditMoviePage() {
                 </button>
               </div>
             </div>
+            <p className="text-xs text-[var(--netflix-light-gray)] mb-2">Optional: You can provide zero links, or any number. If sections are empty, all links will go into a single default section.</p>
             <div className="max-h-[360px] overflow-y-auto rounded-md border border-[var(--netflix-gray)] bg-black/40 p-2">
               {links.length === 0 ? (
                 <p className="text-xs text-[var(--netflix-light-gray)]">No link fields yet. Use "Add link" or "Sync to sections total".</p>
@@ -485,7 +559,7 @@ export default function EditMoviePage() {
             <button
               disabled={saving}
               onClick={handleUpdate}
-              className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-4 py-2 text-sm disabled:opacity-60 transition-all duration-300 font-medium"
+              className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] hover:scale-105 hover:shadow-lg hover:shadow-red-500/30 text-white px-4 py-2 text-sm disabled:opacity-60 disabled:scale-100 disabled:shadow-none transition-all duration-300 font-medium transform active:scale-95"
             >
               {saving ? 'Saving…' : 'Save changes'}
             </button>

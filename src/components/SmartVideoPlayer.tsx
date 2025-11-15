@@ -302,6 +302,8 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
         ref={videoRef}
         poster={poster}
         className="w-full h-full"
+        autoPlay
+        muted
         controls
         playsInline
         preload="auto"
@@ -357,7 +359,7 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
             <div className="text-white text-sm">{err}</div>
             <button
               onClick={() => setRetryNonce((n) => n + 1)}
-              className="px-4 py-2 rounded-md bg-white text-black text-xs font-semibold"
+              className="px-4 py-2 rounded-md bg-white text-black text-xs font-semibold hover:scale-105 hover:shadow-lg transition-all duration-300 transform active:scale-95"
             >
               Retry
             </button>
@@ -370,7 +372,7 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
         type="button"
         onClick={toggleFullscreen}
         aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-        className={`absolute top-3 right-3 z-50 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-300 ${isFullscreen ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-black/60 text-white hover:bg-black/80 backdrop-blur-sm'}`}
+        className={`absolute top-3 right-3 z-50 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg transform active:scale-95 ${isFullscreen ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-black/60 text-white hover:bg-black/80 backdrop-blur-sm'}`}
         style={{ opacity: isFullscreen ? 0.85 : 1 }}
       >
         {isFullscreen ? '× Exit' : 'Fullscreen'}

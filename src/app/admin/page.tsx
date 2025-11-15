@@ -39,6 +39,8 @@ type Movie = {
   heroCTAUrl?: string
   heroImageUrl?: string
   genres?: string[]
+  trailerUrl?: string | null
+  downloadUrl?: string | null
 }
 
 const AVAILABLE_GENRES = [
@@ -89,10 +91,51 @@ export default function AdminPage() {
   const [heroCTAUrl, setHeroCTAUrl] = useState('')
   const [heroImageUrl, setHeroImageUrl] = useState('')
   const [genres, setGenres] = useState<string[]>([])
+  // Trailer/download
+  const [trailerUrl, setTrailerUrl] = useState('')
+  const [downloadUrl, setDownloadUrl] = useState('')
 
   // Data list
   const [movies, setMovies] = useState<Movie[]>([])
   const moviesRef = useMemo(() => (db ? collection(db, 'movies') : null), [])
+
+  // Input sanitizers / normalizers
+  function extractHrefFromAnchor(input: string): string | null {
+    try {
+      const m = input.match(/href\s*=\s*"([^"]+)"/i) || input.match(/href\s*=\s*'([^']+)'/i)
+      if (m && m[1]) return m[1]
+    } catch {}
+    return null
+  }
+  function normalizeDownloadInput(input: string): string {
+    const raw = input.trim()
+    if (!raw) return ''
+    if (raw.startsWith('<')) {
+      const href = extractHrefFromAnchor(raw)
+      return href ? href.trim() : ''
+    }
+    return raw
+  }
+  function extractYouTubeId(input: string): string | null {
+    const raw = input.trim()
+    if (!raw) return null
+    // Full iframe pasted
+    if (raw.startsWith('<')) {
+      const src = (raw.match(/src\s*=\s*"([^"]+)"/i) || raw.match(/src\s*=\s*'([^']+)'/i))?.[1]
+      if (src) return extractYouTubeId(src)
+    }
+    if (raw.includes('youtu.be/')) return raw.split('youtu.be/')[1]?.split(/[?&#]/)[0] || null
+    if (raw.includes('youtube.com/watch')) {
+      try { const u = new URL(raw); return u.searchParams.get('v') } catch { return null }
+    }
+    if (raw.includes('youtube.com/embed/')) return raw.split('/embed/')[1]?.split(/[?&#]/)[0] || null
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw
+    return null
+  }
+  function normalizeYouTubeInput(input: string): string {
+    const id = extractYouTubeId(input)
+    return id ? `https://www.youtube.com/watch?v=${id}` : ''
+  }
 
   // Auth guard
   useEffect(() => {
@@ -157,6 +200,8 @@ export default function AdminPage() {
     setHeroCTAUrl('')
     setHeroImageUrl('')
     setGenres([])
+    setTrailerUrl('')
+    setDownloadUrl('')
   }
 
   function loadIntoForm(m: Movie) {
@@ -176,6 +221,8 @@ export default function AdminPage() {
   setHeroCTAUrl(m.heroCTAUrl || '')
   setHeroImageUrl(m.heroImageUrl || '')
   setGenres(m.genres || [])
+  setTrailerUrl((m as any).trailerUrl || '')
+  setDownloadUrl((m as any).downloadUrl || '')
   }
 
   const handleSubmit = useCallback(async () => {
@@ -187,16 +234,20 @@ export default function AdminPage() {
     // Basic validation
     if (!name.trim()) return setMessage({ type: 'error', text: 'Name is required.' })
     if (!pic.trim()) return setMessage({ type: 'error', text: 'Pic URL is required.' })
-    if (nonEmptyLinks.length === 0) return setMessage({ type: 'error', text: 'Please provide at least one video link.' })
-    const totalRequested = sectionsCounts.reduce((a, b) => a + (Number.isFinite(b.count) ? b.count : 0), 0)
-    if (totalRequested !== nonEmptyLinks.length) {
-      return setMessage({
-        type: 'error',
-        text: `Links count (${nonEmptyLinks.length}) must equal the total across sections (${totalRequested}).`,
-      })
+    // Sections / links optional now. If no links, persist empty sections array.
+    let sections: Section[] = []
+    if (nonEmptyLinks.length > 0) {
+      const totalRequested = sectionsCounts.reduce((a, b) => a + (Number.isFinite(b.count) ? b.count : 0), 0)
+      if (totalRequested !== nonEmptyLinks.length) {
+        return setMessage({
+          type: 'error',
+          text: `Links count (${nonEmptyLinks.length}) must equal the total across sections (${totalRequested}).`,
+        })
+      }
+      sections = sliceLinksBySections(sectionsCounts, nonEmptyLinks)
     }
-
-    const sections = sliceLinksBySections(sectionsCounts, nonEmptyLinks)
+    const normalizedTrailer = normalizeYouTubeInput(trailerUrl)
+    const normalizedDownload = normalizeDownloadInput(downloadUrl)
     const payload: Omit<Movie, 'id'> = {
       name: name.trim(),
       pic: pic.trim(),
@@ -211,6 +262,8 @@ export default function AdminPage() {
       ...(heroCTALabel.trim() ? { heroCTALabel: heroCTALabel.trim() } : {}),
       ...(heroCTAUrl.trim() ? { heroCTAUrl: heroCTAUrl.trim() } : {}),
       ...(heroImageUrl.trim() ? { heroImageUrl: heroImageUrl.trim() } : {}),
+      ...(normalizedTrailer ? { trailerUrl: normalizedTrailer } : {}),
+      ...(normalizedDownload ? { downloadUrl: normalizedDownload } : {}),
       ...(genres.length > 0 ? { genres } : {}),
     }
 
@@ -233,7 +286,7 @@ export default function AdminPage() {
     } finally {
       setSubmitting(false)
     }
-  }, [db, moviesRef, name, pic, sectionsCounts, nonEmptyLinks, movieId, loadMovies, typeValue, featured, popular, topRank, heroDescription, heroCTALabel, heroCTAUrl, heroImageUrl, genres])
+  }, [db, moviesRef, name, pic, sectionsCounts, nonEmptyLinks, movieId, loadMovies, typeValue, featured, popular, topRank, heroDescription, heroCTALabel, heroCTAUrl, heroImageUrl, genres, trailerUrl, downloadUrl])
 
   const handleDelete = useCallback(async (id: string) => {
     // Deletions are handled on the detail page per new flow
@@ -319,6 +372,26 @@ export default function AdminPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Movie or series name"
+                className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
+              />
+            </div>
+
+            {/* Trailer and Download URLs */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">YouTube Trailer URL</label>
+              <input
+                value={trailerUrl}
+                onChange={(e) => setTrailerUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=... (or embed URL)"
+                className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Download URL</label>
+              <input
+                value={downloadUrl}
+                onChange={(e) => setDownloadUrl(e.target.value)}
+                placeholder="https://... (direct or external link)"
                 className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
               />
             </div>
@@ -449,10 +522,10 @@ export default function AdminPage() {
             {/* Sections counts */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Sections (e.g., Season 1 ⇒ 5 videos)</label>
+              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Sections (optional; e.g., Season 1 ⇒ 5 videos)</label>
               <button
-                className="rounded-md border border-[var(--netflix-gray)] px-2 py-1 text-xs hover:bg-[var(--netflix-gray)] transition-all duration-300 text-white"
-                onClick={() => setSectionsCounts((s) => [...s, { name: `Season ${s.length + 1}`, count: 0 }])}
+                className="rounded-md border border-[var(--netflix-gray)] px-2 py-1 text-xs text-white hover:bg-[var(--netflix-gray)] hover:scale-105 hover:shadow-md transition-all duration-300 transform active:scale-95"
+                onClick={() => setSectionsCounts((s) => [...s, { name: `Section ${s.length + 1}`, count: 0 }])}
               >
                 + Add section
               </button>
@@ -495,7 +568,7 @@ export default function AdminPage() {
           {/* Individual link fields */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Video links (individual fields, up to 1000)</label>
+              <label className="text-sm font-medium text-[var(--netflix-light-gray)]">Video links (optional, up to 1000)</label>
               <div className="flex gap-2 flex-wrap">
                 <button
                   className="rounded-md border border-[var(--netflix-gray)] px-2 py-1 text-xs hover:bg-[var(--netflix-gray)] transition-all duration-300 text-white"
