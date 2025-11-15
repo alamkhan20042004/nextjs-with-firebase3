@@ -552,7 +552,7 @@ export default function EpisodePlayerPage() {
                 top: 0,
                 right: 0,
                 width: smallScreen ? '90px' : '120px',
-                height: smallScreen ? '54px' : '70px',
+                height: smallScreen ? '5px' : '70px',
                 paddingTop: 'env(safe-area-inset-top, 0px)',
                 paddingRight: 'env(safe-area-inset-right, 0px)',
                 background: 'rgba(0,0,0,1)'
@@ -623,7 +623,7 @@ export default function EpisodePlayerPage() {
             <p className="relative text-xs sm:text-sm text-[var(--netflix-light-gray)] text-center px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--netflix-gray)]/60 to-black/40 backdrop-blur-md border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/30 transition-all duration-300 hover:scale-105">
               <span className="mr-2 text-lg animate-bounce">💡</span>
               {/* If the player screen is not set correctly, try fullscreen and double-click on the video */}
-              Takes some time. If the video is not playing, that's means your internet connection is slow or unstable.
+              Takes hah some time. If the video is not playing, that's means your internet connection is slow or unstable.
             </p>
           </div>
         </div>
