@@ -518,10 +518,10 @@ export default function EpisodePlayerPage() {
                 aria-hidden="true"
                 className="absolute bottom-0 z-30 bg-transparent pointer-events-auto"
                 style={{
-                  left: smallScreen ? '0px' : 'auto',
-                  right: smallScreen ? 'auto' : '0px',
-                  width: smallScreen ? '58px' : '84px',
-                  height: smallScreen ? '42px' : '60px'
+                  // left: smallScreen ? '0px' : 'auto',
+                  // right: smallScreen ? '100px' : '0px',
+                  width: smallScreen ? '70px' : '84px',
+                  height: smallScreen ? '15px' : '60px'
                 }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               />
@@ -538,6 +538,24 @@ export default function EpisodePlayerPage() {
                 right: smallScreen ? 'auto' : '0px',
                 width: smallScreen ? '58px' : '84px',
                 height: smallScreen ? '42px' : '60px'
+              }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+            />
+          )}
+
+          {/* Generic fullscreen top-right overlay to hide provider logos (desktop + mobile) */}
+          {isFullscreen && !isOdysee && (
+            <div
+              aria-hidden="true"
+              className="absolute z-40 pointer-events-auto"
+              style={{
+                top: 0,
+                right: 0,
+                width: smallScreen ? '90px' : '120px',
+                height: smallScreen ? '54px' : '70px',
+                paddingTop: 'env(safe-area-inset-top, 0px)',
+                paddingRight: 'env(safe-area-inset-right, 0px)',
+                background: 'rgba(0,0,0,1)'
               }}
               onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
             />
