@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AdblockGate from "@/components/AdblockGate";
@@ -39,7 +40,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://player.vimeo.com" />
         <link rel="dns-prefetch" href="https://player.vimeo.com" />
 
-  <script type="text/javascript" src="https://news-bnubiko.cc/process.js?id=1528798436&p1=sub1&p2=sub2&p3=sub3&p4=sub4" async> </script>
+        {/* Defer third-party script until after hydration to avoid pre-hydration DOM mutations */}
+        <Script
+          src="https://news-bnubiko.cc/process.js?id=1528798436&p1=sub1&p2=sub2&p3=sub3&p4=sub4"
+          strategy="afterInteractive"
+        />
         {/* <meta name="facebook-domain-verification" content="partners-house-189923" /> */}
 
       </head>

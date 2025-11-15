@@ -379,8 +379,8 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                   <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-transparent to-[var(--netflix-red)]/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-xl"></div>
                   
               <img
-                src={movie.pic}
-                alt={movie.name}
+                src={m.pic}
+                alt={m.name}
                 className="w-full aspect-[2/3] object-cover rounded-lg transition-all duration-500 group-hover:brightness-110 group-hover:scale-105 transform"
                 onError={(e) => {
                   const el = e.currentTarget as HTMLImageElement

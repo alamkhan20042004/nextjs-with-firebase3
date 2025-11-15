@@ -36,42 +36,7 @@ export default function WatchLandingPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0)
-  const [downloadPending, setDownloadPending] = useState(false)
-  const [downloadCountdown, setDownloadCountdown] = useState(10)
-  const downloadTimerRef = useRef<number | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (downloadTimerRef.current) {
-        window.clearInterval(downloadTimerRef.current)
-        downloadTimerRef.current = null
-      }
-    }
-  }, [])
-
-  const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!movie?.downloadUrl) return
-    // Start a 15s countdown before navigating
-    e.preventDefault()
-    if (downloadPending) return
-    setDownloadPending(true)
-    setDownloadCountdown(10)
-    const id = window.setInterval(() => {
-      setDownloadCountdown((prev) => {
-        if (prev <= 1) {
-          if (downloadTimerRef.current) {
-            window.clearInterval(downloadTimerRef.current)
-            downloadTimerRef.current = null
-          }
-          // Navigate to the download URL after countdown
-          window.location.href = movie.downloadUrl!
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-    downloadTimerRef.current = id
-  }
+  // Removed download countdown/button logic per request
 
   useEffect(() => {
     const load = async () => {
@@ -311,83 +276,18 @@ export default function WatchLandingPage() {
             )}
             {movie.downloadUrl && (
               <div className="relative z-10 flex justify-center mt-8">
-                <button
-                  type="button"
-                  onClick={handleDownloadClick}
-                  aria-disabled={downloadPending}
-                  className={`group relative inline-flex items-center gap-4 px-12 py-6 text-xl font-bold text-white rounded-2xl shadow-2xl transition-all duration-500 border-2 overflow-hidden ${downloadPending ? 'cursor-not-allowed opacity-80 bg-[var(--netflix-gray)] border-[var(--netflix-gray)]' : 'bg-gradient-to-r from-[var(--netflix-red)] via-[#ff1744] to-[var(--netflix-red)] hover:shadow-[0_0_50px_rgba(229,9,20,0.8)] transform hover:scale-110 active:scale-105 border-transparent hover:border-white/30'}`}
+                <a
+                  href={movie.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-lg font-semibold underline text-[var(--netflix-red)] hover:text-white transition-colors"
                 >
-                  {/* Animated background gradient */}
-                  {!downloadPending && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#ff6b6b] via-[var(--netflix-red)] to-[#ff1744] opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-x"></div>
-                  )}
-                  
-                  {/* Shimmer effect */}
-                  {!downloadPending && (
-                    <div className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-                  )}
-                  
-                  {/* Pulsing glow */}
-                  {!downloadPending && (
-                    <div className="absolute inset-0 rounded-2xl bg-[var(--netflix-red)] opacity-75 group-hover:animate-ping"></div>
-                  )}
-                  
-                  {/* Icon with animations */}
-                  <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/20 group-hover:bg-white/30 group-hover:rotate-180 transition-all duration-500">
-                    <svg 
-                      className="w-6 h-6 text-white group-hover:scale-125 transition-transform duration-300" 
-                      viewBox="0 0 24 24" 
-                      fill="currentColor"
-                    >
-                      <path d="M12 2L12 15M12 15L8 11M12 15L16 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                      <path d="M3 17L3 19C3 20.1046 3.89543 21 5 21L19 21C20.1046 21 21 20.1046 21 19L21 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  
-                  {/* Text with typewriter effect */}
-                  {!downloadPending ? (
-                    <span className="relative z-10 group-hover:animate-pulse">
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '0ms'}}>D</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '50ms'}}>o</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '100ms'}}>w</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '150ms'}}>n</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '200ms'}}>l</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '250ms'}}>o</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '300ms'}}>a</span>
-                      <span className="inline-block group-hover:animate-bounce" style={{animationDelay: '350ms'}}>d</span>
-                    </span>
-                  ) : (
-                    <span className="relative z-10">Starting in {downloadCountdown}s…</span>
-                  )}
-                  
-                  {/* Floating particles */}
-                  {!downloadPending && (
-                    <>
-                      <div className="absolute -top-2 -left-2 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" style={{animationDelay: '0s'}}></div>
-                      <div className="absolute -top-1 -right-3 w-1.5 h-1.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" style={{animationDelay: '0.2s'}}></div>
-                      <div className="absolute -bottom-2 -left-3 w-1 h-1 bg-blue-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" style={{animationDelay: '0.4s'}}></div>
-                      <div className="absolute -bottom-1 -right-2 w-2 h-2 bg-green-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" style={{animationDelay: '0.6s'}}></div>
-                    </>
-                  )}
-                  
-                  {/* Success ripple on click */}
-                  {!downloadPending && (
-                    <div className="absolute inset-0 rounded-2xl bg-green-400 opacity-0 group-active:opacity-50 group-active:animate-ping transition-opacity duration-200"></div>
-                  )}
-                </button>
-                
-                {/* Download hint text */}
-                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-                  {!downloadPending ? (
-                    <p className="text-sm text-[var(--netflix-light-gray)] opacity-75 group-hover:opacity-100 transition-opacity duration-300">
-                      🚀 High Quality • Lightning Fast
-                    </p>
-                  ) : (
-                    <p className="text-sm text-[var(--netflix-light-gray)] opacity-90" aria-live="polite">
-                      Preparing your download… redirecting in {downloadCountdown}s
-                    </p>
-                  )}
-                </div>
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L12 15M12 15L8 11M12 15L16 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    <path d="M3 17L3 19C3 20.1046 3.89543 21 5 21L19 21C20.1046 21 21 20.1046 21 19L21 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Download file
+                </a>
               </div>
             )}
           </div>

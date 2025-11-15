@@ -1,4 +1,5 @@
-import React from 'react'
+"use client"
+import React, { useEffect } from 'react'
 
 // Simple shimmering skeleton blocks. Usage:
 // <LoadingSkeleton variant="grid" count={6} />
@@ -25,6 +26,17 @@ const shine: React.CSSProperties = {
 }
 
 export default function LoadingSkeleton({ variant = 'card', count = 1, rows = 4, className = '' }: Props) {
+  // Ensure keyframes are injected after hydration to avoid pre-hydration DOM mutations
+  useEffect(() => {
+    try {
+      if (typeof document !== 'undefined' && !document.getElementById('skltn-anim')) {
+        const style = document.createElement('style')
+        style.id = 'skltn-anim'
+        style.innerHTML = `@keyframes skltn { 0%{ transform: translateX(-100%);} 100%{ transform: translateX(100%);} }`
+        document.head.appendChild(style)
+      }
+    } catch {}
+  }, [])
   if (variant === 'grid') {
     return (
       <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 ${className}`}>
@@ -78,10 +90,4 @@ export default function LoadingSkeleton({ variant = 'card', count = 1, rows = 4,
   )
 }
 
-// keyframes injection via style tag can be avoided if Tailwind plugin present; we inline here
-if (typeof document !== 'undefined' && !document.getElementById('skltn-anim')) {
-  const style = document.createElement('style')
-  style.id = 'skltn-anim'
-  style.innerHTML = `@keyframes skltn { 0%{ transform: translateX(-100%);} 100%{ transform: translateX(100%);} }`
-  document.head.appendChild(style)
-}
+// (moved to useEffect above to avoid pre-hydration mutations)

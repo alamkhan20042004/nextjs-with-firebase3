@@ -2,33 +2,40 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-// Inject CSS for animations and strict gating if not already present
-if (typeof document !== 'undefined' && !document.querySelector('#adblock-animations')) {
-  const style = document.createElement('style')
-  style.id = 'adblock-animations'
-  style.textContent = `
-    @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
-    @keyframes fade-in-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes shimmer { 0% { transform:translateX(-100%); } 100% { transform:translateX(100%); } }
-    .animate-fade-in { animation: fade-in .6s ease-out; }
-    .animate-fade-in-up { animation: fade-in-up .8s ease-out; }
-    .animate-shimmer { animation: shimmer 1.5s ease-in-out; }
-    .animation-delay-100 { animation-delay:.1s; }
-    .animation-delay-200 { animation-delay:.2s; }
-    .animation-delay-300 { animation-delay:.3s; }
-    .animation-delay-400 { animation-delay:.4s; }
-    .animation-delay-500 { animation-delay:.5s; }
-    .animation-delay-600 { animation-delay:.6s; }
-    .animation-delay-800 { animation-delay:.8s; }
-    .animation-delay-1000 { animation-delay:1s; }
-    .animation-direction-reverse { animation-direction: reverse; }
-    /* Strict hide all content except the overlay when adblock detected */
-    html[data-adblock="true"] body > *:not(.adblock-overlay) { display: none !important; }
-  `
-  document.head.appendChild(style)
+// Inject CSS after hydration to avoid pre-hydration DOM mutations
+function useAdblockAnimationsStyle() {
+  useEffect(() => {
+    try {
+      if (typeof document !== 'undefined' && !document.querySelector('#adblock-animations')) {
+        const style = document.createElement('style')
+        style.id = 'adblock-animations'
+        style.textContent = `
+          @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+          @keyframes fade-in-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+          @keyframes shimmer { 0% { transform:translateX(-100%); } 100% { transform:translateX(100%); } }
+          .animate-fade-in { animation: fade-in .6s ease-out; }
+          .animate-fade-in-up { animation: fade-in-up .8s ease-out; }
+          .animate-shimmer { animation: shimmer 1.5s ease-in-out; }
+          .animation-delay-100 { animation-delay:.1s; }
+          .animation-delay-200 { animation-delay:.2s; }
+          .animation-delay-300 { animation-delay:.3s; }
+          .animation-delay-400 { animation-delay:.4s; }
+          .animation-delay-500 { animation-delay:.5s; }
+          .animation-delay-600 { animation-delay:.6s; }
+          .animation-delay-800 { animation-delay:.8s; }
+          .animation-delay-1000 { animation-delay:1s; }
+          .animation-direction-reverse { animation-direction: reverse; }
+          /* Strict hide all content except the overlay when adblock detected */
+          html[data-adblock="true"] body > *:not(.adblock-overlay) { display: none !important; }
+        `
+        document.head.appendChild(style)
+      }
+    } catch {}
+  }, [])
 }
 
 export default function AdblockGate() {
+  useAdblockAnimationsStyle()
   const [blocked, setBlocked] = useState(false)
   const [checking, setChecking] = useState(true)
 

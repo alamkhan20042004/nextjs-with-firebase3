@@ -1,3 +1,4 @@
+"use client"
 export default function Loading() {
   return (
     <div className="min-h-dvh bg-gradient-to-br from-[var(--netflix-black)] via-[#0a0a0a] to-[var(--netflix-black)] p-6 grid place-items-center">

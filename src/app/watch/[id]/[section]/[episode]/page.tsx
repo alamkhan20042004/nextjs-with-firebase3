@@ -48,9 +48,6 @@ export default function EpisodePlayerPage() {
   const loadTimeoutRef = useRef<number | null>(null)
   const [showControls, setShowControls] = useState(false)
   const controlsTimerRef = useRef<number | null>(null)
-  const [downloadPending, setDownloadPending] = useState(false)
-  const [downloadCountdown, setDownloadCountdown] = useState(10)
-  const downloadTimerRef = useRef<number | null>(null)
   const headerHeight = (smallScreen || shortViewport) ? 56 : 68
   const [isCoarse, setIsCoarse] = useState(false)
   // Trailer load diagnostics
@@ -131,37 +128,7 @@ export default function EpisodePlayerPage() {
     } catch {}
   }, [])
 
-  // Cleanup any active download countdown on unmount
-  useEffect(() => {
-    return () => {
-      if (downloadTimerRef.current) {
-        window.clearInterval(downloadTimerRef.current)
-        downloadTimerRef.current = null
-      }
-    }
-  }, [])
-
-  const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!movie?.downloadUrl) return
-    e.preventDefault()
-    if (downloadPending) return
-    setDownloadPending(true)
-    setDownloadCountdown(10)
-    const id = window.setInterval(() => {
-      setDownloadCountdown((prev) => {
-        if (prev <= 1) {
-          if (downloadTimerRef.current) {
-            window.clearInterval(downloadTimerRef.current)
-            downloadTimerRef.current = null
-          }
-          window.location.href = movie.downloadUrl!
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-    downloadTimerRef.current = id
-  }
+  // Removed download countdown/button logic per request
 
   const isRumble = useMemo(() => {
     const url = current?.url || ''
@@ -917,33 +884,21 @@ export default function EpisodePlayerPage() {
                 </div>
               </div>
             )}
-            {/* Download */}
+            {/* Download: replaced button with a direct link */}
             {movie.downloadUrl && (
-              <div className="space-y-3" id="download">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[var(--netflix-red)]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
-                    <path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" />
-                  </svg>
-                  Download
-                </h2>
-                <button
-                  type="button"
-                  onClick={handleDownloadClick}
-                  aria-disabled={downloadPending}
-                  className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-300 transform active:scale-95 ${downloadPending ? 'cursor-not-allowed bg-[var(--netflix-gray)] text-white opacity-85' : 'bg-[var(--netflix-red)] hover:bg-[#F40612] hover:scale-105 hover:shadow-xl hover:shadow-red-500/30 text-white'}`}
+              <div className="space-y-2" id="download">
+                <a
+                  href={movie.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium underline text-[var(--netflix-red)] hover:text-white transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" />
                     <path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" />
                   </svg>
-                  {downloadPending ? `Starting in ${downloadCountdown}s…` : 'Go To File'}
-                </button>
-                {!downloadPending ? (
-                  <p className="text-xs text-[var(--netflix-light-gray)]">You will be redirected to the file location.</p>
-                ) : (
-                  <p className="text-xs text-[var(--netflix-light-gray)]" aria-live="polite">Preparing your download… redirecting in {downloadCountdown}s</p>
-                )}
+                  Download file
+                </a>
               </div>
             )}
           </div>
@@ -954,6 +909,10 @@ export default function EpisodePlayerPage() {
   )
 }
 
+
+
+
+// ===================================================
 
 
 
