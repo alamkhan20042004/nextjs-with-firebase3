@@ -24,6 +24,8 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
   const [bufferedRanges, setBufferedRanges] = useState<Array<{ start: number, end: number }>>([])
   const lastTimeRef = useRef<number>(0)
   const SKIP_INTERVAL = 10 // seconds to skip with arrow keys
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const posKey = useMemo(() => `sv:pos:${encodeURIComponent(src)}`, [src])
 
@@ -256,8 +258,45 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
     return () => window.removeEventListener('keydown', handler)
   }, [SKIP_INTERVAL])
 
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const onFs = () => {
+      const fsEl = document.fullscreenElement
+      setIsFullscreen(!!fsEl && (fsEl === containerRef.current || (containerRef.current?.contains(fsEl as Node) ?? false)))
+    }
+    document.addEventListener('fullscreenchange', onFs)
+    return () => document.removeEventListener('fullscreenchange', onFs)
+  }, [])
+
+  const toggleFullscreen = async () => {
+    const el = containerRef.current
+    if (!el) return
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+        // Attempt unlock orientation when exiting
+        try { (screen as any)?.orientation?.unlock?.() } catch {}
+      } else {
+        await el.requestFullscreen()
+        // Try landscape lock on mobile / coarse pointers
+        try {
+          const coarse = window.matchMedia('(pointer:coarse)').matches
+          const ua = navigator.userAgent
+          const mobileLikely = coarse || /Android|iPhone|iPad|iPod/i.test(ua)
+          if (mobileLikely) {
+            await (screen as any)?.orientation?.lock?.('landscape')
+          }
+        } catch {
+          // Ignore orientation lock failure (unsupported browsers)
+        }
+      }
+    } catch {
+      // Ignore fullscreen errors
+    }
+  }
+
   return (
-    <div className={className || 'relative w-full h-full bg-black'}>
+    <div ref={containerRef} className={className || 'relative w-full h-full bg-black'}>
       <video
         key={retryNonce}
         ref={videoRef}
@@ -267,6 +306,7 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
         playsInline
         preload="auto"
         crossOrigin="anonymous"
+        controlsList="nofullscreen nodownload noplaybackrate"
       />
 
       {/* Loading overlay */}
@@ -325,7 +365,32 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
         </div>
       )}
 
-      {/* No custom overlays or fullscreen button */}
+      {/* Custom fullscreen controls */}
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        className={`absolute top-3 right-3 z-50 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-300 ${isFullscreen ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-black/60 text-white hover:bg-black/80 backdrop-blur-sm'}`}
+        style={{ opacity: isFullscreen ? 0.85 : 1 }}
+      >
+        {isFullscreen ? 'Exit' : 'Fullscreen'}
+      </button>
+      {isFullscreen && (
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label="Exit fullscreen"
+          className="absolute bottom-3 right-3 z-50 rounded-md bg-black/55 hover:bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 transition-colors"
+        >
+          Exit
+        </button>
+      )}
+      <style jsx>{`
+        video::-webkit-media-controls-fullscreen-button,
+        video::-webkit-media-controls-picture-in-picture-button,
+        video::-webkit-media-controls-download-button { display: none !important; }
+        video::-moz-fullscreen-button { display: none !important; }
+      `}</style>
     </div>
   )
 }
