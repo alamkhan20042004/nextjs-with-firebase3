@@ -183,3 +183,9 @@ button, a {
 }
 
 /* Removed smart player control-hiding rules per user request */
+/* Re-enable smart player control-hiding, scoped to .svp */
+/* Hide native buttons only when container has .hide-icons (activated on hover zone) */
+.svp.hide-icons video::-webkit-media-controls-enclosure { overflow: hidden; }
+.svp.hide-icons video::-webkit-media-controls-download-button { display: none !important; }
+.svp.hide-icons video::-webkit-media-controls-picture-in-picture-button { display: none !important; }
+.svp.hide-icons video::-webkit-media-controls-fullscreen-button { display: none !important; }

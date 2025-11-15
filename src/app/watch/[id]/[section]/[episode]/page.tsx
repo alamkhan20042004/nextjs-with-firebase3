@@ -365,8 +365,8 @@ export default function EpisodePlayerPage() {
         {isDirectMedia ? (
           <SmartVideoPlayer src={embed.src} poster={movie.pic} className="relative aspect-video w-full rounded-xl overflow-hidden bg-black animate-fade-in-up animation-delay-500" />
         ) : true ? (
-          // Simple provider embed; no masking or custom fullscreen
-          <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black animate-fade-in-up animation-delay-500">
+          // Simple provider embed with bottom-right masking + fullscreen/exit button
+          <div ref={containerRef} className="relative aspect-video w-full rounded-xl overflow-hidden bg-black animate-fade-in-up animation-delay-500">
             <iframe
               key={`${embed.src}:${reloadNonce}`}
               src={`${embed.src}${embed.src.includes('?') ? '&' : '?'}mbx=${reloadNonce}`}
@@ -419,7 +419,32 @@ export default function EpisodePlayerPage() {
               </>
             )}
 
-            {/* No bottom-right masking or custom fullscreen button */}
+            {/* Bottom-right overlay to hide provider icon cluster */}
+            <div
+              aria-hidden="true"
+              className="absolute pointer-events-auto"
+              style={{
+                right: 0,
+                bottom: 0,
+                width: smallScreen ? 92 : 120,
+                height: smallScreen ? 48 : 66,
+                background: 'transparent',
+                zIndex: 30
+              }}
+              onMouseEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onMouseLeave={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            />
+
+            {/* Custom fullscreen toggle */}
+            <button
+              type="button"
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              onClick={toggleFullscreen}
+              className={`absolute top-3 right-3 z-40 rounded-md bg-black/70 text-white text-xs px-3 py-2 border border-white/20 ${isFullscreen ? '' : 'hover:bg-black/85'}`}
+              onMouseDown={(e) => { e.stopPropagation() }}
+            >
+              {isFullscreen ? 'Exit' : 'Fullscreen'}
+            </button>
           </div>
         ) : (
           <div 

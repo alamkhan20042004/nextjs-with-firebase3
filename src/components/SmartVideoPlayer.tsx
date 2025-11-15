@@ -296,7 +296,7 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
   }
 
   return (
-    <div ref={containerRef} className={className || 'relative w-full h-full bg-black'}>
+    <div ref={containerRef} className={`${className || 'relative w-full h-full bg-black'} svp`}>
       <video
         key={retryNonce}
         ref={videoRef}
@@ -373,7 +373,7 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
         className={`absolute top-3 right-3 z-50 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-300 ${isFullscreen ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-black/60 text-white hover:bg-black/80 backdrop-blur-sm'}`}
         style={{ opacity: isFullscreen ? 0.85 : 1 }}
       >
-        {isFullscreen ? 'Exit' : 'Fullscreen'}
+        {isFullscreen ? '× Exit' : 'Fullscreen'}
       </button>
       {isFullscreen && (
         <button
@@ -382,15 +382,18 @@ export default function SmartVideoPlayer({ src, poster, className, onReady, onEr
           aria-label="Exit fullscreen"
           className="absolute bottom-3 right-3 z-50 rounded-md bg-black/55 hover:bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 transition-colors"
         >
-          Exit
+          × Exit
         </button>
       )}
-      <style jsx>{`
-        video::-webkit-media-controls-fullscreen-button,
-        video::-webkit-media-controls-picture-in-picture-button,
-        video::-webkit-media-controls-download-button { display: none !important; }
-        video::-moz-fullscreen-button { display: none !important; }
-      `}</style>
+      {/* Bottom-right hover zone to temporarily hide native icons (no visible box) */}
+      <div
+        aria-hidden="true"
+        className="absolute pointer-events-auto"
+        style={{ right: 0, bottom: 0, width: 120, height: 68, background: 'transparent', zIndex: 40 }}
+        onMouseEnter={() => { const el = containerRef.current; if (el) el.classList.add('hide-icons') }}
+        onMouseLeave={() => { const el = containerRef.current; if (el) el.classList.remove('hide-icons') }}
+        onTouchStart={() => { const el = containerRef.current; if (el) { el.classList.add('hide-icons'); window.setTimeout(() => el.classList.remove('hide-icons'), 1500) } }}
+      />
     </div>
   )
 }
