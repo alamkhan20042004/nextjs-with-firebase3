@@ -136,9 +136,9 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
         <div className="flex flex-col items-center gap-2" role="status" aria-live="polite">
           <div className="relative inline-flex items-center gap-3 px-8 py-4 rounded-xl border-2 border-white/20 bg-black/50 text-white">
             <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4"/><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg>
-            <span className="text-sm">Preparing link… <span className="font-mono">{secondsLeft}s</span></span>
+            <span className="text-sm">Preparing link… <span className="font-mono">{secondsLeft}s</span></span>   {/* This text will be displayed inside button while the link is being prepared */}
           </div>
-          <div className="text-xs text-[var(--netflix-light-gray)]">Requested at <span className="text-white font-semibold">{clickedAtText}</span></div>
+          {/* <div className="text-xs text-[var(--netflix-light-gray)]">Requested at <span className="text-white font-semibold">{clickedAtText}</span></div> */}
         </div>
       )}
 
@@ -153,7 +153,7 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4.001 4a1 1 0 01-1.414 0l-4.001-4a1 1 0 111.414-1.414L11 13.586V4a1 1 0 011-1z" /><path d="M5 20a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1z" /></svg>
             Open Download
           </a>
-          <div className="flex items-center flex-wrap gap-2 text-xs">
+          {/* <div className="flex items-center flex-wrap gap-2 text-xs">
             <span className="text-[var(--netflix-light-gray)]">Requested at</span>
             <span className="text-white font-semibold">{clickedAtText}</span>
             <button
@@ -164,7 +164,7 @@ export default function DownloadCTA({ url, label = 'Download', variant = 'button
               {copied ? 'Copied!' : 'Copy URL'}
             </button>
             <code className="block w-full sm:w-auto truncate px-2 py-1 rounded bg-black/40 border border-[var(--netflix-gray)] text-[10px] text-[var(--netflix-light-gray)]">{url}</code>
-          </div>
+          </div> */}
         </div>
       )}
     </div>
