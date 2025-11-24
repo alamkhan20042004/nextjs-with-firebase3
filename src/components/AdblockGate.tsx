@@ -251,16 +251,16 @@ export default function AdblockGate() {
             <div className="p-3 rounded-lg bg-[var(--netflix-gray)]/20 border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/50 transition-all duration-300 hover:bg-[var(--netflix-gray)]/30 transform hover:scale-105">
               <p className="font-medium text-white flex items-center gap-2">
                 <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
-                uBlock Origin
+                VPN ON
               </p>
-              <p className="mt-1">Click extension → Power button</p>
+              <p className="mt-1">VPN must on</p>
             </div>
             <div className="p-3 rounded-lg bg-[var(--netflix-gray)]/20 border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/50 transition-all duration-300 hover:bg-[var(--netflix-gray)]/30 transform hover:scale-105">
               <p className="font-medium text-white flex items-center gap-2">
                 <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
-                AdBlock Plus
+                Disable Adblocker
               </p>
-              <p className="mt-1">Click extension → Disable</p>
+              <p className="mt-1">Off the adblocker</p>
             </div>
           </div>
         </div>
