@@ -185,6 +185,10 @@ export default function EditMoviePage() {
   }
 
   const nonEmptyLinks = useMemo(() => links.map((l) => l.trim()).filter(Boolean).slice(0, 1000), [links])
+  // Live previews for trailer/download normalization
+  const trailerId = useMemo(() => extractYouTubeId(trailerUrl) || null, [trailerUrl])
+  const normalizedTrailerPreview = useMemo(() => (trailerId ? `https://www.youtube.com/watch?v=${trailerId}` : ''), [trailerId])
+  const normalizedDownloadPreview = useMemo(() => normalizeDownloadInput(downloadUrl), [downloadUrl])
 
   const handleUpdate = async () => {
     setMessage(null)
@@ -376,6 +380,22 @@ export default function EditMoviePage() {
                   placeholder="Override hero image URL (optional)"
                   className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
                 />
+                {heroImageUrl && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <img
+                      src={heroImageUrl}
+                      alt="Hero preview"
+                      className="h-24 w-40 object-cover rounded border border-[var(--netflix-gray)]"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                    />
+                    <a
+                      href={heroImageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-[var(--netflix-red)] hover:underline break-all"
+                    >{heroImageUrl}</a>
+                  </div>
+                )}
                 <input
                   value={heroDescription}
                   onChange={(e) => setHeroDescription(e.target.value)}
@@ -449,6 +469,39 @@ export default function EditMoviePage() {
                   placeholder="Direct download URL (optional)"
                   className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
                 />
+                {/* Trailer live preview */}
+                {trailerId && (
+                  <div className="mt-2 space-y-2">
+                    <div className="text-xs text-[var(--netflix-light-gray)]">Normalized trailer: <span className="text-white font-mono">{normalizedTrailerPreview}</span></div>
+                    <div className="aspect-video w-full rounded-md overflow-hidden border border-[var(--netflix-gray)] bg-black">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${trailerId}?autoplay=0&mute=1&playsinline=1`}
+                        title="Trailer preview"
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      />
+                    </div>
+                  </div>
+                )}
+                {/* Download live preview */}
+                {normalizedDownloadPreview && (
+                  <div className="mt-2 space-y-1">
+                    <div className="text-xs text-[var(--netflix-light-gray)]">Sanitized download: <span className="text-white font-mono break-all">{normalizedDownloadPreview}</span></div>
+                    <div className="flex gap-2">
+                      <a
+                        href={normalizedDownloadPreview}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs px-2 py-1 rounded-md bg-[var(--netflix-red)] text-white hover:brightness-110 transition"
+                      >Test link</a>
+                      <button
+                        type="button"
+                        onClick={async () => { try { await navigator.clipboard.writeText(normalizedDownloadPreview) } catch {} }}
+                        className="text-xs px-2 py-1 rounded-md bg-black/40 border border-[var(--netflix-gray)] text-white hover:border-[var(--netflix-red)]/60 transition"
+                      >Copy</button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
