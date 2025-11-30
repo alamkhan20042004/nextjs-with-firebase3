@@ -74,6 +74,9 @@ export default function MoviesListPage() {
 
   const handleDelete = async (id: string) => {
     if (!moviesRef) return
+    // Ask for confirmation before deleting
+    const confirmed = typeof window !== 'undefined' ? window.confirm('Delete this movie permanently? This cannot be undone.') : true
+    if (!confirmed) return
     try {
       await deleteDoc(doc(moviesRef, id))
       setMessage('Movie deleted.')
