@@ -244,23 +244,121 @@ export default function AdblockGate() {
           </button>
         </div>
 
-        {/* Animated instructions */}
-        <div className="text-xs text-[var(--netflix-light-gray)] space-y-3 mt-8 animate-fade-in animation-delay-800">
-          <p className="font-semibold text-white">Quick disable guide:</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg bg-[var(--netflix-gray)]/20 border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/50 transition-all duration-300 hover:bg-[var(--netflix-gray)]/30 transform hover:scale-105">
-              <p className="font-medium text-white flex items-center gap-2">
-                <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
-                VPN ON
-              </p>
-              <p className="mt-1">VPN must on</p>
+        {/* Extraordinary animated instructions with premium effects */}
+        <div className="text-sm text-[var(--netflix-light-gray)] space-y-6 mt-12 animate-fade-in animation-delay-800">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/20 via-purple-500/20 to-[var(--netflix-red)]/20 blur-xl animate-pulse"></div>
+            <p className="relative text-2xl font-bold text-white bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent animate-fade-in">
+              ⚡ Quick Setup Guide ⚡
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* VPN Card - Enhanced */}
+            <div className="group relative p-6 rounded-2xl bg-gradient-to-br from-[var(--netflix-gray)]/40 via-[var(--netflix-gray)]/30 to-transparent border-2 border-[var(--netflix-gray)]/50 hover:border-[var(--netflix-red)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--netflix-red)]/40 transform hover:scale-110 hover:-rotate-2 overflow-hidden">
+              {/* Animated background glow */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/0 via-[var(--netflix-red)]/20 to-[var(--netflix-red)]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer"></div>
+              
+              {/* Floating particles */}
+              <div className="absolute top-2 right-2 w-3 h-3 bg-[var(--netflix-red)] rounded-full animate-ping opacity-75"></div>
+              <div className="absolute bottom-3 left-3 w-2 h-2 bg-white rounded-full animate-bounce animation-delay-300"></div>
+              
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/50 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                      </svg>
+                    </div>
+                    <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
+                  </div>
+                  <div className="px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-full text-[10px] font-bold text-green-400 uppercase tracking-wider animate-pulse">
+                    Required
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-xl font-bold text-white group-hover:text-green-400 transition-colors duration-300">
+                    🔐 VPN MUST BE ON
+                  </p>
+                  <p className="text-sm text-[var(--netflix-light-gray)] group-hover:text-white transition-colors duration-300 leading-relaxed">
+                    Enable your VPN before accessing content for secure & unrestricted streaming
+                  </p>
+                </div>
+
+                {/* Progress indicator */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-[var(--netflix-gray)] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full w-0 group-hover:w-full transition-all duration-1000 ease-out"></div>
+                  </div>
+                  <span className="text-xs text-green-400 font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">Step 1</span>
+                </div>
+              </div>
+
+              {/* Corner accent */}
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/30 to-transparent rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
-            <div className="p-3 rounded-lg bg-[var(--netflix-gray)]/20 border border-[var(--netflix-gray)]/30 hover:border-[var(--netflix-red)]/50 transition-all duration-300 hover:bg-[var(--netflix-gray)]/30 transform hover:scale-105">
-              <p className="font-medium text-white flex items-center gap-2">
-                <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
-                Disable Adblocker
+
+            {/* Adblocker Card - Enhanced */}
+            <div className="group relative p-6 rounded-2xl bg-gradient-to-br from-[var(--netflix-gray)]/40 via-[var(--netflix-gray)]/30 to-transparent border-2 border-[var(--netflix-gray)]/50 hover:border-[var(--netflix-red)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--netflix-red)]/40 transform hover:scale-110 hover:rotate-2 overflow-hidden">
+              {/* Animated background glow */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)]/0 via-[var(--netflix-red)]/20 to-[var(--netflix-red)]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer animation-direction-reverse"></div>
+              
+              {/* Floating particles */}
+              <div className="absolute top-3 left-3 w-3 h-3 bg-[var(--netflix-red)] rounded-full animate-ping opacity-75 animation-delay-200"></div>
+              <div className="absolute bottom-2 right-2 w-2 h-2 bg-white rounded-full animate-bounce animation-delay-500"></div>
+              
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[var(--netflix-red)] to-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--netflix-red)]/50 group-hover:rotate-[-12deg] group-hover:scale-110 transition-all duration-300">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </div>
+                    <span className="w-3 h-3 bg-[var(--netflix-red)] rounded-full animate-pulse shadow-lg shadow-[var(--netflix-red)]/50"></span>
+                  </div>
+                  <div className="px-3 py-1 bg-[var(--netflix-red)]/20 border border-[var(--netflix-red)]/50 rounded-full text-[10px] font-bold text-[var(--netflix-red)] uppercase tracking-wider animate-pulse">
+                    Critical
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-xl font-bold text-white group-hover:text-[var(--netflix-red)] transition-colors duration-300">
+                    🚫 DISABLE ADBLOCKER
+                  </p>
+                  <p className="text-sm text-[var(--netflix-light-gray)] group-hover:text-white transition-colors duration-300 leading-relaxed">
+                    Turn off your ad blocker extension to access premium content seamlessly
+                  </p>
+                </div>
+
+                {/* Progress indicator */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-[var(--netflix-gray)] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[var(--netflix-red)] to-red-700 rounded-full w-0 group-hover:w-full transition-all duration-1000 ease-out"></div>
+                  </div>
+                  <span className="text-xs text-[var(--netflix-red)] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">Step 2</span>
+                </div>
+              </div>
+
+              {/* Corner accent */}
+              <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-bl from-[var(--netflix-red)]/30 to-transparent rounded-br-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </div>
+          </div>
+
+          {/* Extra emphasis footer with pulsing arrow */}
+          <div className="relative mt-8 p-4 rounded-xl bg-gradient-to-r from-transparent via-[var(--netflix-red)]/10 to-transparent border border-[var(--netflix-red)]/30">
+            <div className="flex items-center justify-center gap-3">
+              <svg className="w-5 h-5 text-[var(--netflix-red)] animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
+              </svg>
+              <p className="text-xs font-medium text-white">
+                Complete both steps above, then click <span className="text-[var(--netflix-red)] font-bold animate-pulse">"Reload Page"</span> to continue
               </p>
-              <p className="mt-1">Off the adblocker</p>
+              <svg className="w-5 h-5 text-[var(--netflix-red)] animate-bounce animation-delay-300" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
+              </svg>
             </div>
           </div>
         </div>
