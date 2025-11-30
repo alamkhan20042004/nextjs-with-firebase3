@@ -103,6 +103,7 @@ export default function WatchLandingPage() {
     load().catch(() => setLoading(false))
   }, [id])
 
+
   if (loading) {
     return (
       <div className="min-h-dvh bg-[var(--netflix-black)]">

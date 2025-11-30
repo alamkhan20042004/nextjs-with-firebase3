@@ -7,6 +7,7 @@ import { auth, db } from '@/lib/firebase'
 import { GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup } from 'firebase/auth'
 import { isAdminEmail } from '@/lib/admin'
 import { collection, getDocs, orderBy, query, doc, getDoc, type DocumentData } from 'firebase/firestore'
+import { incrementMovieClick, shouldIncrement } from '@/lib/counters'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 
 type Section = { name: string; links: string[] }
@@ -372,6 +373,7 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                     href={`/watch/${m.id}`}
                     className="relative shrink-0 w-[140px] sm:w-[160px] md:w-[200px] lg:w-[240px] rounded-xl overflow-hidden snap-start group/card transition-all duration-500 hover:scale-110 hover:z-20 animate-fade-in-right shadow-lg hover:shadow-2xl hover:shadow-[var(--netflix-red)]/20"
                     style={{ animationDelay: `${idx * 100}ms` }}
+                    onClick={async () => { try { if (shouldIncrement(m.id)) await incrementMovieClick(m.id) } catch {} }}
                   >
                     {/* Enhanced card design with premium feel */}
                     <div className="relative aspect-[2/3] md:aspect-[16/9] bg-gradient-to-br from-[var(--netflix-gray)] via-gray-800 to-black/80 overflow-hidden">
@@ -514,6 +516,7 @@ function TopTenRow({ title, items }: { title: string; items: Movie[] }) {
                 key={m.id}
                 href={`/watch/${m.id}`}
                 className="relative group/top10 shrink-0 snap-start"
+                onClick={async () => { try { if (shouldIncrement(m.id)) await incrementMovieClick(m.id) } catch {} }}
               >
                 {/* Large ranking number with TOP 10 badge */}
                 <div className="absolute -left-3 sm:-left-4 md:-left-6 top-0 bottom-0 flex items-end z-0 pointer-events-none">

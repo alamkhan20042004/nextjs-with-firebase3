@@ -21,6 +21,9 @@ type Movie = {
   genres?: string[]
   trailerUrl?: string | null
   downloadUrl?: string | null
+  todayCount?: number
+  yesterdayCount?: number
+  totalClicks?: number
 }
 
 export default function MoviesListPage() {
@@ -30,6 +33,7 @@ export default function MoviesListPage() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<string | null>(null)
+  const [q, setQ] = useState('')
 
   const moviesRef = useMemo(() => (db ? collection(db, 'movies') : null), [])
 
@@ -102,6 +106,20 @@ export default function MoviesListPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--netflix-red)]">All Movies</h1>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <p className="text-xs sm:text-sm text-[var(--netflix-light-gray)] hidden sm:block truncate max-w-[160px]">{email}</p>
+            <label className="relative block">
+              <span className="sr-only">Search</span>
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-[var(--netflix-light-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by name…"
+                className="w-[220px] sm:w-[260px] rounded-md bg-[var(--netflix-gray)]/60 border border-[var(--netflix-gray)]/50 pl-9 pr-3 py-2 text-xs sm:text-sm text-white placeholder:text-[var(--netflix-light-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-[var(--netflix-red)]/50 transition-all"
+              />
+            </label>
             <Link href="/admin" className="rounded-md border border-[var(--netflix-gray)] px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--netflix-gray)] transition-all duration-300 text-white">
               Admin home
             </Link>
@@ -145,12 +163,15 @@ export default function MoviesListPage() {
                     <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Genres</th>
                     <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Sections</th>
                     <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Videos</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Today</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Yesterday</th>
+                    <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Total</th>
                     <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Created</th>
                     <th className="py-3 px-3 font-bold text-white text-xs uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--netflix-gray)]">
-                  {movies.map((m) => {
+                  {(q.trim() ? movies.filter((m) => m.name.toLowerCase().includes(q.trim().toLowerCase())) : movies).map((m) => {
                     const totalVideos = m.sections?.reduce((a, s) => a + s.links.length, 0) ?? 0
                     const created = m.createdAt?.toDate ? m.createdAt.toDate() : undefined
                     return (
@@ -191,6 +212,9 @@ export default function MoviesListPage() {
                         </td>
                         <td className="py-3 px-3 text-[var(--netflix-light-gray)]">{m.sections?.length ?? 0}</td>
                         <td className="py-3 px-3 text-[var(--netflix-light-gray)]">{totalVideos}</td>
+                        <td className="py-3 px-3 text-white">{m.todayCount ?? 0}</td>
+                        <td className="py-3 px-3 text-white">{m.yesterdayCount ?? 0}</td>
+                        <td className="py-3 px-3 text-white">{m.totalClicks ?? 0}</td>
                         <td className="py-3 px-3 text-[var(--netflix-light-gray)] text-xs">{created ? created.toLocaleString() : '-'}</td>
                         <td className="py-3 px-3">
                           <Link
@@ -199,6 +223,12 @@ export default function MoviesListPage() {
                           >
                             Show
                           </Link>
+                          <button
+                            onClick={() => handleDelete(m.id)}
+                            className="ml-2 rounded-md border border-[var(--netflix-gray)] px-3 py-1.5 text-xs text-white hover:bg-[var(--netflix-gray)] transition-all duration-300"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     )
