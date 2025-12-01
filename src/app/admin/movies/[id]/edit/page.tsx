@@ -255,7 +255,15 @@ export default function EditMoviePage() {
     <div className="min-h-dvh p-6 bg-[var(--netflix-black)] text-white">
       <div className="mx-auto w-full max-w-3xl space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-white">Edit movie</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-white">Edit movie</h1>
+            {(typeof downloadUrl === 'string' && /coming\s*soon/i.test(downloadUrl.trim())) && (
+              <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-[var(--netflix-red)]/20 border border-[var(--netflix-red)]/40 text-[var(--netflix-red)] font-semibold text-xs">
+                <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
+                Upcoming (Coming Soon)
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-[var(--netflix-light-gray)] hidden sm:block">{email}</p>
             <Link
@@ -267,13 +275,6 @@ export default function EditMoviePage() {
             <button
               onClick={() => {
                 if (!auth) return
-              {/* Upcoming indicator */}
-              {(typeof movie.downloadUrl === 'string' && /coming\s*soon/i.test(movie.downloadUrl!.trim())) && (
-                <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-[var(--netflix-red)]/20 border border-[var(--netflix-red)]/40 text-[var(--netflix-red)] font-semibold text-xs">
-                  <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
-                  Upcoming (Coming Soon)
-                </div>
-              )}
                 signOut(auth).then(() => router.replace('/user'))
               }}
               className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 py-1.5 text-sm transition-all duration-300"
