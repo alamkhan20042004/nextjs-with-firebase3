@@ -267,6 +267,13 @@ export default function EditMoviePage() {
             <button
               onClick={() => {
                 if (!auth) return
+              {/* Upcoming indicator */}
+              {(typeof movie.downloadUrl === 'string' && /coming\s*soon/i.test(movie.downloadUrl!.trim())) && (
+                <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-[var(--netflix-red)]/20 border border-[var(--netflix-red)]/40 text-[var(--netflix-red)] font-semibold text-xs">
+                  <span className="w-2 h-2 bg-[var(--netflix-red)] rounded-full animate-pulse"></span>
+                  Upcoming (Coming Soon)
+                </div>
+              )}
                 signOut(auth).then(() => router.replace('/user'))
               }}
               className="rounded-md bg-[var(--netflix-red)] hover:bg-[#F40612] text-white px-3 py-1.5 text-sm transition-all duration-300"

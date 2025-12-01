@@ -28,11 +28,20 @@ export const dynamic = 'force-dynamic'
 //   updatedAt: Timestamp
 // }
 
-interface Movie { id: string; name: string; pic: string }
+interface Movie { id: string; name: string; pic: string; downloadUrl?: string }
 interface HomeConfig {
-  hero: { movieId: string | null; imageUrl?: string; description?: string; ctaLabel?: string; ctaUrl?: string }
+  hero: {
+    movieId: string | null
+    imageUrl?: string
+    description?: string
+    ctaLabel?: string
+    ctaUrl?: string
+    preferUpcoming?: boolean
+    upcomingMovieId?: string | null
+  }
   popular: string[]
   top10: string[]
+  upcoming?: { enabled?: boolean; title?: string }
 }
 
 export default function GlobalSettingsPage() {
@@ -56,6 +65,10 @@ export default function GlobalSettingsPage() {
 
   const [popularIds, setPopularIds] = useState<string[]>([])
   const [top10Ids, setTop10Ids] = useState<string[]>([])
+  const [showUpcoming, setShowUpcoming] = useState<boolean>(false)
+  const [upcomingTitle, setUpcomingTitle] = useState<string>('Upcoming')
+  const [heroPreferUpcoming, setHeroPreferUpcoming] = useState<boolean>(false)
+  const [heroUpcomingId, setHeroUpcomingId] = useState<string | ''>('')
 
   const moviesRef = useMemo(() => (db ? collection(db, 'movies') : null), [db])
   const homeConfigRef = useMemo(() => (db ? doc(db, 'config', 'home') : null), [db])
@@ -113,22 +126,34 @@ export default function GlobalSettingsPage() {
               description: data.hero?.description || '',
               ctaLabel: data.hero?.ctaLabel || '',
               ctaUrl: data.hero?.ctaUrl || '',
+              preferUpcoming: !!data.hero?.preferUpcoming,
+              upcomingMovieId: data.hero?.upcomingMovieId || '',
             },
             popular: Array.isArray(data.popular) ? data.popular.filter((x: any) => typeof x === 'string') : [],
             top10: Array.isArray(data.top10) ? data.top10.filter((x: any) => typeof x === 'string').slice(0, 10) : [],
+            upcoming: {
+              enabled: !!data.upcoming?.enabled,
+              title: data.upcoming?.title || 'Upcoming',
+            },
           }
           setHeroMovieId(cfg.hero.movieId || '')
           setHeroImageUrl(cfg.hero.imageUrl || '')
           setHeroDescription(cfg.hero.description || '')
           setHeroCTALabel(cfg.hero.ctaLabel || '')
           setHeroCTAUrl(cfg.hero.ctaUrl || '')
+          setHeroPreferUpcoming(!!cfg.hero.preferUpcoming)
+          setHeroUpcomingId((cfg.hero.upcomingMovieId as any) || '')
           setPopularIds(cfg.popular)
           setTop10Ids(cfg.top10)
+          setShowUpcoming(!!cfg.upcoming?.enabled)
+          setUpcomingTitle(cfg.upcoming?.title || 'Upcoming')
         } else {
           // Initialize empty config state
           setHeroMovieId('')
           setPopularIds([])
           setTop10Ids([])
+          setShowUpcoming(false)
+          setUpcomingTitle('Upcoming')
         }
       } finally {
         setConfigLoading(false)
@@ -174,9 +199,15 @@ export default function GlobalSettingsPage() {
           ...(heroDescription.trim() ? { description: heroDescription.trim() } : {}),
           ...(heroCTALabel.trim() ? { ctaLabel: heroCTALabel.trim() } : {}),
           ...(heroCTAUrl.trim() ? { ctaUrl: heroCTAUrl.trim() } : {}),
+          ...(heroPreferUpcoming ? { preferUpcoming: true } : { preferUpcoming: false }),
+          ...(heroUpcomingId ? { upcomingMovieId: heroUpcomingId } : { upcomingMovieId: null }),
         },
         popular: popularIds,
         top10: top10Ids.slice(0, 10),
+        upcoming: {
+          enabled: !!showUpcoming,
+          title: (upcomingTitle || 'Upcoming').trim(),
+        },
         updatedAt: serverTimestamp(),
       }
       await setDoc(homeConfigRef, payload, { merge: true })
@@ -236,6 +267,35 @@ export default function GlobalSettingsPage() {
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
+
+            {/* Prefer upcoming for hero */}
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                id="prefer-upcoming"
+                type="checkbox"
+                checked={heroPreferUpcoming}
+                onChange={(e) => setHeroPreferUpcoming(e.target.checked)}
+                className="h-4 w-4 rounded border-[var(--netflix-gray)] bg-black text-[var(--netflix-red)] focus:ring-[var(--netflix-red)]/50"
+              />
+              <label htmlFor="prefer-upcoming" className="text-sm text-white">Prefer upcoming movie in hero</label>
+            </div>
+            {heroPreferUpcoming && (
+              <div className="grid sm:grid-cols-2 gap-2">
+                <select
+                  value={heroUpcomingId}
+                  onChange={(e) => setHeroUpcomingId(e.target.value)}
+                  className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
+                >
+                  <option value="">-- Auto pick latest upcoming --</option>
+                  {movies
+                    .filter((m) => typeof m.downloadUrl === 'string' && /coming\s*soon/i.test(m.downloadUrl!.trim()))
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                </select>
+                <p className="text-xs text-[var(--netflix-light-gray)]">If empty, hero will auto-pick the newest upcoming movie.</p>
+              </div>
+            )}
             <input
               value={heroImageUrl}
               onChange={(e) => setHeroImageUrl(e.target.value)}
@@ -264,6 +324,32 @@ export default function GlobalSettingsPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Upcoming row config */}
+        <div className="rounded-xl border border-[var(--netflix-gray)] bg-[var(--netflix-dark)]/90 backdrop-blur p-4 sm:p-6 shadow-xl space-y-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-white">Upcoming Row</h2>
+          <div className="flex items-center gap-2">
+            <input
+              id="show-upcoming"
+              type="checkbox"
+              checked={showUpcoming}
+              onChange={(e) => setShowUpcoming(e.target.checked)}
+              className="h-4 w-4 rounded border-[var(--netflix-gray)] bg-black text-[var(--netflix-red)] focus:ring-[var(--netflix-red)]/50"
+            />
+            <label htmlFor="show-upcoming" className="text-sm text-white">Show Upcoming movies row</label>
+          </div>
+          {showUpcoming && (
+            <div className="grid sm:grid-cols-2 gap-2">
+              <input
+                value={upcomingTitle}
+                onChange={(e) => setUpcomingTitle(e.target.value)}
+                placeholder="Row title (e.g., Upcoming)"
+                className="rounded-md border border-[var(--netflix-gray)] bg-black/60 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-transparent transition-all"
+              />
+              <p className="text-xs text-[var(--netflix-light-gray)]">Movies are considered upcoming when Download URL is set to "coming soon".</p>
+            </div>
+          )}
         </div>
 
         {/* Popular selection */}

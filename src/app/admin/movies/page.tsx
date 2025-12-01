@@ -184,7 +184,12 @@ export default function MoviesListPage() {
                             {m.type ? (m.type === 'movie' ? 'Movie' : 'Series') : '-'}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-medium text-white group-hover:text-[var(--netflix-red)] transition-colors">{m.name}</td>
+                        <td className="py-3 px-3 font-medium text-white group-hover:text-[var(--netflix-red)] transition-colors">
+                          {m.name}
+                          {(typeof m.downloadUrl === 'string' && /coming\s*soon/i.test(m.downloadUrl.trim())) && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--netflix-red)]/20 text-[var(--netflix-red)] border border-[var(--netflix-red)]/40">Upcoming</span>
+                          )}
+                        </td>
                         <td className="py-3 px-3 max-w-[240px]">
                           <div className="flex items-center gap-3">
                             <img

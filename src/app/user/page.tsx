@@ -38,9 +38,10 @@ export default function UserPage() {
 
   const [items, setItems] = useState<Movie[]>([])
   const [homeCfg, setHomeCfg] = useState<{
-    hero?: { movieId: string | null; imageUrl?: string; description?: string; ctaLabel?: string; ctaUrl?: string }
+    hero?: { movieId: string | null; imageUrl?: string; description?: string; ctaLabel?: string; ctaUrl?: string; preferUpcoming?: boolean; upcomingMovieId?: string | null }
     popular?: string[]
     top10?: string[]
+    upcoming?: { enabled?: boolean; title?: string }
   } | null>(null)
   const [loadingList, setLoadingList] = useState(true)
   const [loadingCfg, setLoadingCfg] = useState(true)
@@ -139,6 +140,23 @@ export default function UserPage() {
   const movies = filteredItems.filter((i) => (i.type ?? 'movie') === 'movie')
   const series = filteredItems.filter((i) => i.type === 'series')
 
+  const isUpcoming = useCallback((m: Movie) => {
+    if (typeof m.downloadUrl !== 'string') return false
+    return /coming\s*soon/i.test(m.downloadUrl.trim())
+  }, [])
+
+  const upcomingItems = useMemo(() => {
+    const list = filteredItems.filter(isUpcoming)
+    const withTime = (mm: Movie) => {
+      try {
+        if (mm.createdAt?.toDate) return mm.createdAt.toDate().getTime()
+        if (typeof mm.createdAt === 'number') return mm.createdAt
+      } catch {}
+      return 0
+    }
+    return list.sort((a, b) => withTime(b) - withTime(a))
+  }, [filteredItems, isUpcoming])
+
   const top10 = useMemo(() => {
     // Prefer global config if available
     if (homeCfg?.top10 && homeCfg.top10.length > 0) {
@@ -161,14 +179,22 @@ export default function UserPage() {
   }, [filteredItems, homeCfg])
 
   const featuredItem = useMemo(() => {
-    // Prefer global hero selection
+    // If admin prefers upcoming in hero, try upcoming first
+    if (homeCfg?.hero?.preferUpcoming) {
+      if (homeCfg.hero.upcomingMovieId) {
+        const sel = filteredItems.find((x) => x.id === homeCfg.hero!.upcomingMovieId)
+        if (sel && isUpcoming(sel)) return sel
+      }
+      if (upcomingItems.length > 0) return upcomingItems[0]
+    }
+    // Prefer explicit hero selection
     if (homeCfg?.hero?.movieId) {
       const m = filteredItems.find((x) => x.id === homeCfg.hero!.movieId)
       return m || filteredItems[0] || null
     }
     const explicit = filteredItems.find((m) => m.featured)
     return explicit || filteredItems[0] || null
-  }, [filteredItems, homeCfg])
+  }, [filteredItems, homeCfg, upcomingItems, isUpcoming])
 
   const popularItems = useMemo(() => {
     if (homeCfg?.popular && homeCfg.popular.length > 0) {
@@ -313,6 +339,12 @@ export default function UserPage() {
                 {featuredItem && <HeroBanner item={featuredItem} cfg={homeCfg?.hero} />}
                 
                 <div className="px-4 sm:px-6 space-y-12 mt-12 relative z-10">
+                  {/* Upcoming (placed before Popular) */}
+                  {homeCfg?.upcoming?.enabled && upcomingItems.length > 0 && (
+                    <div className="animate-fade-in-up animation-delay-150">
+                      <BrowseRow title={homeCfg?.upcoming?.title || 'Upcoming'} items={upcomingItems} />
+                    </div>
+                  )}
                   {/* Popular on Netflix */}
                   {popularItems.length > 0 && (
                     <div className="animate-fade-in-up animation-delay-200">
@@ -393,6 +425,90 @@ function BrowseRow({ title, items }: { title: string; items: Movie[] }) {
                           el.style.display = 'none'
                         }}
                       />
+
+                      {/* Coming Soon badge - EXTRAORDINARY premium style */}
+                      {(typeof m.downloadUrl === 'string' && /coming\s*soon/i.test(m.downloadUrl.trim())) && (
+                        <div className="absolute bottom-3 left-3 z-30 group-hover/card:bottom-5 group-hover/card:left-5 transition-all duration-500">
+                          <div className="relative">
+                            {/* Multiple animated glow layers */}
+                            <div className="absolute -inset-2 bg-gradient-to-r from-pink-500 via-[var(--netflix-red)] to-orange-500 opacity-75 blur-xl animate-pulse"></div>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 opacity-60 blur-md animate-pulse animation-delay-300"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--netflix-red)] via-orange-400 to-yellow-300 opacity-90 blur-sm animate-ping animation-delay-500"></div>
+                            
+                            {/* Rotating border gradient */}
+                            <div className="absolute -inset-[3px] bg-gradient-to-r from-yellow-300 via-[var(--netflix-red)] to-purple-500 rounded-xl opacity-0 group-hover/card:opacity-100 animate-spin-slow blur-[1px]" style={{ animation: 'spin 4s linear infinite' }}></div>
+                            
+                            {/* Shimmer sweep */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full group-hover/card:translate-x-full transition-transform duration-1000 rounded-xl"></div>
+                            
+                            {/* Main badge container */}
+                            <div className="relative px-4 py-2 rounded-xl overflow-hidden group-hover/card:scale-125 transition-all duration-500 shadow-2xl" style={{ 
+                              background: 'linear-gradient(135deg, #E50914 0%, #FF6B6B 25%, #FFD93D 50%, #FF6B6B 75%, #E50914 100%)',
+                              backgroundSize: '200% 200%',
+                              animation: 'gradient 3s ease infinite'
+                            }}>
+                              {/* Inner glow */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/20"></div>
+                              
+                              {/* Floating particles */}
+                              <div className="absolute top-0 left-1/4 w-1 h-1 bg-white rounded-full animate-float opacity-80"></div>
+                              <div className="absolute top-1 right-1/4 w-1 h-1 bg-yellow-200 rounded-full animate-float animation-delay-300 opacity-70"></div>
+                              <div className="absolute bottom-1 left-1/3 w-0.5 h-0.5 bg-white rounded-full animate-bounce animation-delay-500"></div>
+                              
+                              {/* Badge content */}
+                              <div className="relative flex items-center gap-2">
+                                {/* Triple pulsing dots */}
+                                <div className="relative flex items-center gap-0.5">
+                                  <span className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-50 animation-delay-200"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-yellow-200 to-white shadow-lg shadow-yellow-400/50"></span>
+                                  </span>
+                                </div>
+                                
+                                {/* Animated text */}
+                                <span className="text-[12px] font-black tracking-widest uppercase relative z-10" style={{
+                                  background: 'linear-gradient(90deg, #FFFFFF 0%, #FFD700 25%, #FFFFFF 50%, #FFE4B5 75%, #FFFFFF 100%)',
+                                  backgroundSize: '200% auto',
+                                  WebkitBackgroundClip: 'text',
+                                  WebkitTextFillColor: 'transparent',
+                                  backgroundClip: 'text',
+                                  animation: 'gradient 2s linear infinite',
+                                  textShadow: '0 0 20px rgba(255,215,0,0.8), 0 0 30px rgba(255,255,255,0.6)',
+                                  filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.9))'
+                                }}>
+                                  Coming Soon
+                                </span>
+                                
+                                {/* Sparkle burst */}
+                                <div className="relative">
+                                  <svg className="w-4 h-4 text-yellow-200 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                  <div className="absolute inset-0 animate-ping opacity-50">
+                                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Bottom accent line */}
+                              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent opacity-60"></div>
+                              
+                              {/* Top shine */}
+                              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent"></div>
+                            </div>
+
+                            {/* Outer glow ring */}
+                            <div className="absolute -inset-4 border-2 border-yellow-400/30 rounded-2xl opacity-0 group-hover/card:opacity-100 animate-pulse animation-delay-200"></div>
+                            
+                            {/* Corner light beams */}
+                            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gradient-to-br from-white/80 via-yellow-300/40 to-transparent rounded-full blur-sm opacity-90 group-hover/card:scale-150 transition-transform duration-700"></div>
+                            <div className="absolute -bottom-1 -left-1 w-6 h-6 bg-gradient-to-tr from-orange-400/60 via-red-300/40 to-transparent rounded-full blur-sm opacity-80 group-hover/card:scale-150 transition-transform duration-700 animation-delay-300"></div>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Quality badge */}
                       <div className="absolute top-3 right-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[9px] font-bold px-2 py-1 rounded-full shadow-lg opacity-90 group-hover/card:opacity-100 transition-all duration-300">
@@ -573,6 +689,7 @@ function TopTenRow({ title, items }: { title: string; items: Movie[] }) {
 function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; description?: string; ctaLabel?: string; ctaUrl?: string } }) {
   const hasFirstPlayable = !!(item.sections?.[0]?.links?.[0])
   const playHref = hasFirstPlayable ? `/watch/${item.id}/0/0` : `/watch/${item.id}`
+  const upcoming = typeof item.downloadUrl === 'string' && /coming\s*soon/i.test(item.downloadUrl.trim())
   return (
     <div className="relative w-full h-[46vh] sm:h-[60vh] md:h-[70vh] overflow-hidden fade-in">
       {/* Background image with gradient overlay */}
@@ -598,11 +715,47 @@ function HeroBanner({ item, cfg }: { item: Movie; cfg?: { imageUrl?: string; des
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl">
             {item.name}
           </h1>
-          <p className="text-sm sm:text-base text-[var(--netflix-light-gray)] line-clamp-3">
-            {cfg?.description || item.heroDescription || (item.type === 'series'
-              ? `Binge-watch this series with ${item.sections?.length || 0} season${item.sections?.length !== 1 ? 's' : ''} of thrilling episodes.`
-              : 'Experience this captivating story that will keep you on the edge of your seat.')}
-          </p>
+          {upcoming && (
+            <div className="relative inline-block select-none">
+              {/* Outer ambient glow */}
+              <div className="absolute -inset-3 bg-gradient-to-r from-yellow-400/20 via-[var(--netflix-red)]/20 to-pink-500/20 blur-2xl rounded-2xl animate-pulse" />
+              {/* Rotating soft ring */}
+              <div className="pointer-events-none absolute -inset-[2px] rounded-2xl opacity-70" style={{
+                background: 'conic-gradient(from 0deg, rgba(255,215,0,0.5), rgba(229,9,20,0.5), rgba(255,105,180,0.4), rgba(255,215,0,0.5))',
+                animation: 'spin 8s linear infinite'
+              }} />
+              {/* Badge body */}
+              <div className="relative px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur-md shadow-2xl">
+                {/* Shimmer sweep */}
+                <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full animate-[shimmer_1.6s_ease-in-out_infinite]" />
+                {/* Text */}
+                <span
+                  className="text-xs sm:text-sm md:text-base font-extrabold tracking-[0.35em] uppercase"
+                  style={{
+                    background: 'linear-gradient(90deg, #FFFFFF 0%, #FFD700 25%, #FFFFFF 50%, #FFE4B5 75%, #FFFFFF 100%)',
+                    backgroundSize: '200% auto',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'gradient 2.2s linear infinite',
+                    textShadow: '0 0 16px rgba(255,215,0,0.85), 0 0 28px rgba(255,255,255,0.5)'
+                  }}
+                >
+                  COMING SOON
+                </span>
+                {/* Sparkles */}
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-300 shadow-[0_0_10px_rgba(255,215,0,0.9)] animate-ping" />
+                <span className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.9)] animate-pulse" />
+              </div>
+            </div>
+          )}
+          {!upcoming && (
+            <p className="text-sm sm:text-base text-[var(--netflix-light-gray)] line-clamp-3">
+              {cfg?.description || item.heroDescription || (item.type === 'series'
+                ? `Binge-watch this series with ${item.sections?.length || 0} season${item.sections?.length !== 1 ? 's' : ''} of thrilling episodes.`
+                : 'Experience this captivating story that will keep you on the edge of your seat.')}
+            </p>
+          )}
           <div className="flex items-center gap-3 pt-2">
             {/* <Link
               href={playHref}
