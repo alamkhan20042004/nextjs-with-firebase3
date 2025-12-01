@@ -190,7 +190,8 @@ export default function AdblockGate() {
             Ad Blocker Detected
           </h2>
           <p className="text-base text-[var(--netflix-light-gray)] leading-relaxed animate-fade-in animation-delay-400">
-            Please disable your ad blocker and reload the page to continue enjoying our content.
+            {/* Please disable your ad blocker and reload the page to continue enjoying our content. */}
+            Please disable your ad blocker and enable vpn must then reload the page to continue enjoying our content.
           </p>
         </div>
 
