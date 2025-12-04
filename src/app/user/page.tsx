@@ -233,7 +233,8 @@ export default function UserPage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search titles, genres, actors..."
+                // placeholder="Search titles, genres, actors..."
+                placeholder="Search here & Download Full Movie(Series) in Hindi"
                 className="w-full sm:w-[320px] md:w-[420px] rounded-lg bg-[var(--netflix-gray)]/60 border border-[var(--netflix-gray)]/50 pl-10 pr-4 py-3 text-sm text-white placeholder:text-[var(--netflix-light-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--netflix-red)]/50 focus:border-[var(--netflix-red)]/50 transition-all duration-300 hover:bg-[var(--netflix-gray)]/80 backdrop-blur-sm"
               />
             </label>
